@@ -24,6 +24,8 @@ func main() {
 	app.Version = "0.2.0"
 	app.EnableBashCompletion = true
 
+	fmt.Printf("This is xake, Version " + app.Version + "\n\n")
+
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
 		Usage: "print the version",
@@ -70,11 +72,25 @@ func main() {
 			},
 		},
 		{
+			Name:    "name",
+			Aliases: []string{"n"},
+			Usage:   "provide a name for this repository",
+			Action: func(c *cli.Context) error {
+				name := c.Args().Get(0)
+				Name(name)
+				return nil
+			},
+		},
+		{
 			Name:    "bake",
 			Aliases: []string{"b"},
 			Usage:   "compile all the files in the repository",
 			Action: func(c *cli.Context) error {
-				return nil
+				workers := c.Int("jobs")
+				if workers == 0 {
+					workers = 2
+				}
+				return Bake(workers)
 			},
 		},
 
@@ -113,10 +129,12 @@ func main() {
 
 		//dependencies, _ := LatexDependencies("sample.tex")
 		//b, err := IsClean("/home/jim/ximeraSample", "/home/jim/ximeraSample/sample.tex")
-		files, err := NeedingCompilation(repository)
+		//files, err := NeedingCompilation(repository)
 
-		log.Error(err)
-		log.Error(files)
+		//log.Error(err)
+		//log.Error(files)
+
+		log.Info(repository)
 
 		return nil
 	}
