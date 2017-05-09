@@ -93,6 +93,19 @@ func main() {
 				return Bake(workers)
 			},
 		},
+		{
+			Name:    "publish",
+			Aliases: []string{"p"},
+			Usage:   "add a publication tag to the repository",
+			Action: func(c *cli.Context) error {
+				err := Publish()
+				if err != nil {
+					log.Error(err)
+				}
+				return err
+
+			},
+		},
 
 		{
 			Name:    "information",
