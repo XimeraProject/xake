@@ -14,8 +14,8 @@ func gitPushXimera(ref string) error {
 		args = []string{"push", "ximera", ref}
 	}
 
-	bold := color.New(color.FgYellow, color.Bold)
-	bold.Println("git " + strings.Join(args, " "))
+	yellow := color.New(color.FgYellow)
+	yellow.Println("git " + strings.Join(args, " "))
 
 	command := exec.Command("git", args...)
 	command.Stdout = os.Stdout
