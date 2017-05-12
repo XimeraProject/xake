@@ -1,9 +1,28 @@
 package main
 
 import (
-	"fmt"
+	"github.com/fatih/color"
 	"github.com/libgit2/git2go"
+	"os"
+	"os/exec"
+	"strings"
 )
+
+func gitPushXimera(ref string) error {
+	args := []string{"push", "ximera"}
+	if len(ref) > 0 {
+		args = []string{"push", "ximera", ref}
+	}
+
+	bold := color.New(color.FgYellow, color.Bold)
+	bold.Println("git " + strings.Join(args, " "))
+
+	command := exec.Command("git", args...)
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+	command.Start()
+	return command.Wait()
+}
 
 func Serve() error {
 	log.Debug("Opening repository " + repository)
@@ -22,12 +41,23 @@ func Serve() error {
 	_, err = repo.References.Lookup(tagName)
 	if err != nil {
 		log.Error("There is no publication tag corresponding to the repository HEAD.")
-		log.Error("Did you forget to `xake frost` ?")
-		return nil
+		log.Error("Did you forget to perform a `xake frost` ?")
+		return err
 	}
 
-	fmt.Println("git push ximera")
-	fmt.Println("git push ximera " + tagName)
+	_, err = repo.Remotes.Lookup("ximera")
+	if err != nil {
+		log.Error("I could not find a ximera remote.")
+		log.Error("Did you forget to perform a `xake name` ?")
+		return err
+	}
+
+	err = gitPushXimera("")
+	if err != nil {
+		return err
+	}
+
+	err = gitPushXimera(tagName)
 
 	return nil
 }

@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
+	"github.com/fatih/color"
+	prefixed "github.com/kisonecat/logrus-prefixed-formatter"
 	"github.com/urfave/cli"
-	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 	"net/url"
 	"os"
 	"sort"
@@ -16,7 +17,10 @@ var keyFingerprint string
 var ximeraUrl *url.URL
 
 func init() {
-	log.Formatter = new(prefixed.TextFormatter)
+	formatter := new(prefixed.TextFormatter)
+	formatter.DisableTimestamp = true
+	formatter.DisableUppercase = true
+	log.Formatter = formatter
 }
 
 func main() {
@@ -46,6 +50,10 @@ func main() {
 		cli.BoolFlag{
 			Name:  "verbose, v, debug, d",
 			Usage: "Display additional debugging information",
+		},
+		cli.BoolFlag{
+			Name:  "no-color, C",
+			Usage: "Disable color",
 		},
 		cli.IntFlag{
 			Name:  "jobs, j",
@@ -108,10 +116,10 @@ func main() {
 		},
 		{
 			Name:    "frost",
-			Aliases: []string{"f"},
+			Aliases: []string{"f, ice"},
 			Usage:   "add a publication tag to the repository",
 			Action: func(c *cli.Context) error {
-				err := Publish()
+				err := Frost()
 				if err != nil {
 					log.Error(err)
 				}
@@ -147,6 +155,14 @@ func main() {
 	app.Before = func(c *cli.Context) error {
 		if c.Bool("verbose") {
 			log.Level = logrus.DebugLevel
+		}
+
+		if c.Bool("no-color") {
+			color.NoColor = true
+			plainLogs := new(prefixed.TextFormatter)
+			plainLogs.DisableColors = true
+			plainLogs.DisableTimestamp = true
+			log.Formatter = plainLogs
 		}
 
 		repository = c.String("repository")

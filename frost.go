@@ -36,7 +36,7 @@ func test(repo *git.Repository) error {
 	return nil
 }
 
-func Publish() error {
+func Frost() error {
 
 	filenames, _ := NeedingPublication(repository)
 	filenames = choose(filenames, exists)

@@ -108,6 +108,10 @@ func post(url string) (resp *http.Response, err error) {
 	return request("POST", url)
 }
 
+func GetRepositoryUrl(repositoryName string) string {
+	return endpoint(repositoryName + ".git")
+}
+
 func GetRepositoryToken(repositoryName string) (string, error) {
 	response, err := post(repositoryName + ".git")
 	if err != nil {
