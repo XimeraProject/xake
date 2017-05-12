@@ -5,12 +5,15 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/urfave/cli"
 	prefixed "github.com/x-cray/logrus-prefixed-formatter"
+	"net/url"
 	"os"
 	"sort"
 )
 
 var log = logrus.New()
 var repository string
+var keyFingerprint string
+var ximeraUrl *url.URL
 
 func init() {
 	log.Formatter = new(prefixed.TextFormatter)
@@ -54,6 +57,16 @@ func main() {
 			Value: repository,
 			Usage: "Perform operations on the repository at `PATH`",
 		},
+		cli.StringFlag{
+			Name:  "key, k",
+			Value: keyFingerprint,
+			Usage: "Request authorization using GPG key with `FINGERPRINT`",
+		},
+		cli.StringFlag{
+			Name:  "url, U",
+			Value: "http://localhost:3000/",
+			Usage: "Use the Ximera server hosted at `URL`",
+		},
 	}
 
 	app.Commands = []cli.Command{
@@ -94,8 +107,8 @@ func main() {
 			},
 		},
 		{
-			Name:    "publish",
-			Aliases: []string{"p"},
+			Name:    "frost",
+			Aliases: []string{"f"},
 			Usage:   "add a publication tag to the repository",
 			Action: func(c *cli.Context) error {
 				err := Publish()
@@ -104,6 +117,19 @@ func main() {
 				}
 				return err
 
+			},
+		},
+
+		{
+			Name:    "serve",
+			Aliases: []string{"s"},
+			Usage:   "push the publication tag to the server",
+			Action: func(c *cli.Context) error {
+				err := Serve()
+				if err != nil {
+					log.Error(err)
+				}
+				return err
 			},
 		},
 
@@ -125,6 +151,21 @@ func main() {
 
 		repository = c.String("repository")
 		repository, err := FindRepositoryAmongParentDirectories(repository)
+		if err != nil {
+			return err
+		}
+		log.Debug("Using repository " + repository)
+
+		keyFingerprint = c.String("key")
+		// Failing to be able to resolve the key is not a fatal error,
+		// because you don't necessarily need to have GPG installed in
+		// order to make use of xake
+		keyFingerprint, _ = ResolveKeyToFingerprint(keyFingerprint)
+		log.Debug("Using GPG key " + keyFingerprint)
+
+		urlString := c.String("url")
+		// This should actually default to whatever the ximera remote is in the current repo
+		ximeraUrl, err = url.Parse(urlString)
 		if err != nil {
 			return err
 		}
