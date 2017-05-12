@@ -28,7 +28,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.2.0"
+	app.Version = "0.2.1"
 	app.EnableBashCompletion = true
 
 	fmt.Printf("This is xake, Version " + app.Version + "\n\n")
