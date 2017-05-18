@@ -99,11 +99,6 @@ func transformXourse(directory string, filename string, doc *goquery.Document) {
 	return
 }
 
-func transformActivity(directory string, filename string, doc *goquery.Document) {
-	log.Debug("Transforming activity file " + filename + " by doing nothing")
-	return
-}
-
 func transformHtml(directory string, filename string) error {
 	htmlFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".html"
 
@@ -134,7 +129,7 @@ func transformHtml(directory string, filename string) error {
 	if xourseFile {
 		transformXourse(directory, filename, doc)
 	} else {
-		transformActivity(directory, filename, doc)
+		//transformActivity(directory, filename, doc)
 		// BADBAD: we can just return here, because transformActivity doesn't actually do anything
 		return nil
 	}

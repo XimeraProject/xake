@@ -142,11 +142,28 @@ func main() {
 		},
 
 		{
+			Name:    "view",
+			Aliases: []string{"v"},
+			Usage:   "view a picture of a piece of a cake",
+			Action: func(c *cli.Context) error {
+				EasterEgg()
+				return nil
+			},
+		},
+
+		{
 			Name:    "information",
-			Aliases: []string{"i"},
+			Aliases: []string{"i", "info"},
 			Usage:   "display information about the repository",
 			Action: func(c *cli.Context) error {
-				fmt.Print("Repository = " + repository)
+				files, _, err := NeedingCompilation(repository)
+				if err != nil {
+					log.Error(err)
+					return err
+				}
+				for _, file := range files {
+					log.Warn(fmt.Sprintf("%s needs to be compiled", file))
+				}
 				return nil
 			},
 		},
@@ -203,8 +220,6 @@ func main() {
 
 		//log.Error(err)
 		//log.Error(files)
-
-		log.Info(repository)
 
 		return nil
 	}

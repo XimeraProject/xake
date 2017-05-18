@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/libgit2/git2go"
+	"github.com/stevenle/topsort"
 	"io"
 	"io/ioutil"
 	"net/url"
@@ -256,7 +257,7 @@ func FilesInRepository(directory string, condition func(string) (bool, error)) (
 	return files, nil
 }
 
-func IsUpToDate(inputFilename string, outputFilename string, dependencies []string) (bool, error) {
+func IsUpToDate(inputFilename string, outputFilename string) (bool, error) {
 	inputInfo, err := os.Stat(inputFilename)
 	// nonexistent files are viewed as having a very old modification time
 	inputTime := time.Unix(0, 0)
@@ -274,18 +275,19 @@ func IsUpToDate(inputFilename string, outputFilename string, dependencies []stri
 		return false, nil
 	}
 
-	for _, dependency := range dependencies {
-		dependencyInfo, err := os.Stat(dependency)
-		dependencyTime := time.Unix(0, 0)
-		if err == nil {
-			dependencyTime = dependencyInfo.ModTime()
-		}
+	/*
+		for _, dependency := range dependencies {
+			dependencyInfo, err := os.Stat(dependency)
+			dependencyTime := time.Unix(0, 0)
+			if err == nil {
+				dependencyTime = dependencyInfo.ModTime()
+			}
 
-		if dependencyTime.After(outputTime) {
-			return false, nil
-		}
+			if dependencyTime.After(outputTime) {
+				return false, nil
+			}
 
-	}
+		}*/
 
 	return true, nil
 }
@@ -295,31 +297,91 @@ func TexFilesInRepository(directory string) ([]string, error) {
 }
 
 /* NeedingCompilation examines all the files in the given directory
-/* (and its subdirectories) and calls callback with a list of files
+/* (and its subdirectories) and returns the list of files
 /* that require compilation */
-func NeedingCompilation(directory string) ([]string, error) {
-	filenames, err := TexFilesInRepository(directory)
+func NeedingCompilation(directory string) ([]string, map[string][]string, error) {
 	var results []string
+	graph := topsort.NewGraph()
+	dependencyGraph := make(map[string][]string)
+
+	filenames, err := TexFilesInRepository(directory)
 
 	if err != nil {
-		return []string{}, err
+		return results, dependencyGraph, err
 	}
 
-	for _, filename := range filenames {
-		dependencies, err := LatexDependencies(filename)
-		if err == nil {
-			outputFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".html"
-			good, err := IsUpToDate(filename, outputFilename, dependencies)
+	dirty := make(map[string]bool)
 
+	log.Debug("Determine if file are up-to-date.")
+	for _, filename := range filenames {
+		graph.AddNode(filename)
+
+		outputFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".html"
+		good, err := IsUpToDate(filename, outputFilename)
+		if err == nil {
+			dirty[filename] = !good
+		} else {
+			dirty[filename] = true
+		}
+	}
+
+	log.Debug("Propagate dirt across dependencies.")
+	for {
+		dirtMoving := false
+
+		for _, filename := range filenames {
+			if !dirty[filename] {
+				dependencies, err := LatexDependencies(filename)
+				if err == nil {
+					for _, dependency := range dependencies {
+						if dirty[dependency] {
+							dirty[filename] = true
+							dirtMoving = true
+						}
+					}
+				}
+			}
+		}
+
+		if !dirtMoving {
+			break
+		}
+	}
+
+	log.Debug("Build dependency graph.")
+	for _, filename := range filenames {
+		if dirty[filename] {
+			dependencies, err := LatexDependencies(filename)
 			if err == nil {
-				if !good {
-					results = append(results, filename)
+				for _, dependency := range dependencies {
+					graph.AddEdge(filename, dependency)
+					if dirty[dependency] {
+						dependencyGraph[filename] = append(dependencyGraph[filename], dependency)
+					}
 				}
 			}
 		}
 	}
 
-	return results, nil
+	log.Debug("Perform topological sort on dependencies.")
+	added := make(map[string]bool)
+	for _, filename := range filenames {
+		if dirty[filename] {
+			sorted, err := graph.TopSort(filename)
+			if err == nil {
+				for _, orderedName := range sorted {
+					if dirty[orderedName] {
+						if !added[orderedName] {
+							results = append(results, orderedName)
+							added[orderedName] = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return results, dependencyGraph, nil
 }
 
 func identifyFilesAssociatedWithHtmlFile(htmlFilename string) ([]string, error) {
