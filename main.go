@@ -248,16 +248,25 @@ func main() {
 			return err
 		}
 
-		// BADBAD: should be spun out to a goroutine which panics?
-		if !IsXimeraClassFileInstalled() {
-			return fmt.Errorf("Could not find a copy of ximera.cls, but xake requires that you install the ximeraLatex package.")
-		}
+		// Check to see if we can find ximeraLatex
+		go func() {
+			group.Add(1)
+			if !IsXimeraClassFileInstalled() {
+				log.Error("Could not find a copy of ximera.cls.")
+				log.Error("Xake requires that you install the ximeraLatex package.")
+			}
+			group.Done()
+		}()
 
-		/*
+		// Check to see if the version of ximeraLatex is good
+		go func() {
+			group.Add(1)
 			err := CheckXimeraVersion()
 			if err != nil {
 				log.Error(err)
-			}*/
+			}
+			group.Done()
+		}()
 
 		//dependencies, _ := LatexDependencies("sample.tex")
 		//b, err := IsClean("/home/jim/ximeraSample", "/home/jim/ximeraSample/sample.tex")
