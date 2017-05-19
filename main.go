@@ -5,10 +5,12 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/fatih/color"
 	prefixed "github.com/kisonecat/logrus-prefixed-formatter"
+	"github.com/tcnksm/go-latest"
 	"github.com/urfave/cli"
 	"net/url"
 	"os"
 	"sort"
+	"sync"
 )
 
 var log = logrus.New()
@@ -25,11 +27,38 @@ func init() {
 }
 
 func main() {
+	var group sync.WaitGroup
+
 	app := cli.NewApp()
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.3.0"
+	app.Version = "0.3.1"
+
+	// Check to see if this is the newest version
+	go func() {
+		group.Add(1)
+
+		githubTag := &latest.GithubTag{
+			Owner:             "XimeraProject",
+			Repository:        "xake",
+			FixVersionStrFunc: latest.DeleteFrontV(),
+		}
+
+		res, err := latest.Check(githubTag, app.Version)
+		if err != nil {
+			log.Warn("Could not check if " + app.Version + " is the latest version.")
+			log.Warn(err)
+		} else {
+			if res.Outdated {
+				log.Error(app.Version + " is not the latest version of xake.")
+				log.Error(fmt.Sprintf("You should upgrade to %s", res.Current))
+			}
+		}
+
+		group.Done()
+	}()
+
 	app.EnableBashCompletion = true
 
 	fmt.Printf("This is xake, Version " + app.Version + "\n\n")
@@ -248,4 +277,6 @@ func main() {
 	sort.Sort(cli.CommandsByName(app.Commands))
 
 	app.Run(os.Args)
+
+	group.Wait()
 }
