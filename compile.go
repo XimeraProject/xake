@@ -71,8 +71,42 @@ func sage(filename string) ([]byte, error) {
 	return cmdOut, err
 }
 
+func readTitleAndAbstract(htmlFilename string) (title string, abstract string, err error) {
+	f, err := os.Open(htmlFilename)
+	defer f.Close()
+	if err != nil {
+		return
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		return
+	}
+
+	title = doc.Find("title").Contents().Text()
+
+	doc.Find("div.abstract").Each(func(i int, s *goquery.Selection) {
+		var html string
+		html, err = s.Html()
+		if err == nil {
+			abstract = html
+		}
+	})
+
+	doc.Find("div.abstract p").Each(func(i int, s *goquery.Selection) {
+		var html string
+		html, err = s.Html()
+		if err == nil {
+			abstract = html
+		}
+	})
+
+	return
+}
+
 func transformXourse(directory string, filename string, doc *goquery.Document) {
 	log.Debug("Transforming xourse file " + filename)
+
 	log.Debug("Remove the anchor links that htlatex is inserting")
 	doc.Find("a").Each(func(_ int, s *goquery.Selection) {
 		_, exists := s.Attr("id")
@@ -82,17 +116,25 @@ func transformXourse(directory string, filename string, doc *goquery.Document) {
 	})
 
 	log.Debug("Normalize the activity links")
+
 	doc.Find("a.activity").Each(func(_ int, s *goquery.Selection) {
 		href, exists := s.Attr("href")
 
 		if exists {
 			// BADBAD: do I need this?
-			href = filepath.Clean(filepath.Join(filepath.Dir(filename), href))
+			texActivityFilename := filepath.Clean(filepath.Join(filepath.Dir(filename), href))
+			activityFilename := strings.TrimSuffix(texActivityFilename, ".tex") + ".html"
 
 			// Unfortunately xourse files links are relative to repo root
-			href, _ = filepath.Rel(directory, href)
+			href, _ = filepath.Rel(directory, texActivityFilename)
 			href = strings.TrimSuffix(href, ".tex")
 			s.SetAttr("href", href)
+
+			log.Debug("Reading title and abstract from " + activityFilename)
+			title, abstract, err := readTitleAndAbstract(activityFilename)
+			if err == nil {
+				s.AppendHtml("<h2>" + title + "</h2><h3>" + abstract + "</h3>")
+			}
 		}
 	})
 
@@ -129,8 +171,7 @@ func transformHtml(directory string, filename string) error {
 	if xourseFile {
 		transformXourse(directory, filename, doc)
 	} else {
-		//transformActivity(directory, filename, doc)
-		// BADBAD: we can just return here, because transformActivity doesn't actually do anything
+		// BADBAD: we can just return here, because we don't have to transform activities -- only xourses.
 		return nil
 	}
 

@@ -15,6 +15,7 @@ var log = logrus.New()
 var repository string
 var keyFingerprint string
 var ximeraUrl *url.URL
+var workers int
 
 func init() {
 	formatter := new(prefixed.TextFormatter)
@@ -28,7 +29,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.2.1"
+	app.Version = "0.3.0"
 	app.EnableBashCompletion = true
 
 	fmt.Printf("This is xake, Version " + app.Version + "\n\n")
@@ -93,6 +94,19 @@ func main() {
 			},
 		},
 		{
+			Name:    "clean",
+			Aliases: []string{"k"},
+			Usage:   "remove built files from the working tree",
+			Action: func(c *cli.Context) error {
+				err := RemoveBuiltFiles()
+				if err != nil {
+					log.Error(err)
+				}
+				return nil
+			},
+		},
+
+		{
 			Name:    "name",
 			Aliases: []string{"n"},
 			Usage:   "provide a name for this repository",
@@ -107,10 +121,6 @@ func main() {
 			Aliases: []string{"b"},
 			Usage:   "compile all the files in the repository",
 			Action: func(c *cli.Context) error {
-				workers := c.Int("jobs")
-				if workers == 0 {
-					workers = 2
-				}
 				return Bake(workers)
 			},
 		},
@@ -143,6 +153,7 @@ func main() {
 
 		{
 			Name:    "view",
+			Hidden:  true,
 			Aliases: []string{"v"},
 			Usage:   "view a picture of a piece of a cake",
 			Action: func(c *cli.Context) error {
@@ -172,6 +183,11 @@ func main() {
 	app.Before = func(c *cli.Context) error {
 		if c.Bool("verbose") {
 			log.Level = logrus.DebugLevel
+		}
+
+		workers = c.Int("jobs")
+		if workers == 0 {
+			workers = 2
 		}
 
 		if c.Bool("no-color") {
@@ -222,6 +238,10 @@ func main() {
 		//log.Error(files)
 
 		return nil
+	}
+
+	app.CommandNotFound = func(c *cli.Context, command string) {
+		log.Error("I do not know how to '" + command + "'.")
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))

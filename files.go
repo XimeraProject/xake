@@ -116,12 +116,10 @@ func IsClean(repositoryPath string, filename string) (bool, error) {
 	return sha == hash, nil
 }
 
-/* LatexDependencies reads filename, looks for inputs and includes,
-/* and callbacks with a list of normalized paths to dependencies */
-func LatexDependencies(filename string) ([]string, error) {
+func readTexCode(filename string) (string, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return []string{}, err
+		return "", err
 	}
 
 	// Remove TeX comments
@@ -139,6 +137,55 @@ func LatexDependencies(filename string) ([]string, error) {
 	// Sometimes things are inside a verbatim environment; let's hackishly remove such things
 	verbatim, _ := regexp.Compile("\\\\begin{verbatim}.*\\\\end{verbatim}")
 	code = verbatim.ReplaceAllString(code, "")
+
+	return code, nil
+}
+
+/* IncludedImages reads filename, looks for includegraphics
+/* and returns a list of all included graphic filenames */
+func IncludedImages(filename string) ([]string, error) {
+	code, err := readTexCode(filename)
+	if err != nil {
+		return []string{}, err
+	}
+
+	// Search for includegraphics commands and gather the filenames.
+	includers, _ := regexp.Compile("\\\\(includegraphics)\\s*{([^}]+)}")
+
+	matches := includers.FindAllStringSubmatch(code, -1)
+
+	var graphics []string
+
+	for _, m := range matches {
+		resolved, err := filepath.Abs(filepath.Join(filepath.Dir(filename), m[2]))
+		if err == nil {
+			f, err := os.Open(resolved)
+			defer f.Close()
+
+			// Should test for other possible extensions
+			if err == nil {
+				graphics = append(graphics, resolved)
+			} else {
+				f, err := os.Open(resolved + ".pdf")
+				defer f.Close()
+
+				if err == nil {
+					graphics = append(graphics, resolved+".pdf")
+				}
+			}
+		}
+	}
+
+	return graphics, nil
+}
+
+/* LatexDependencies reads filename, looks for inputs and includes,
+/* and returns a list of normalized paths to dependencies */
+func LatexDependencies(filename string) ([]string, error) {
+	code, err := readTexCode(filename)
+	if err != nil {
+		return []string{}, err
+	}
 
 	// Search for input or similar commands and gather the .tex filenames.
 	//
@@ -274,20 +321,6 @@ func IsUpToDate(inputFilename string, outputFilename string) (bool, error) {
 	if inputTime.After(outputTime) {
 		return false, nil
 	}
-
-	/*
-		for _, dependency := range dependencies {
-			dependencyInfo, err := os.Stat(dependency)
-			dependencyTime := time.Unix(0, 0)
-			if err == nil {
-				dependencyTime = dependencyInfo.ModTime()
-			}
-
-			if dependencyTime.After(outputTime) {
-				return false, nil
-			}
-
-		}*/
 
 	return true, nil
 }

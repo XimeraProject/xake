@@ -10,8 +10,6 @@ import (
 func Bake(workers int) error {
 	tasks := make(chan string)
 	queue := make(chan string)
-	finished := make(chan string)
-	finishedCount := 0
 
 	log.Debug(fmt.Sprintf("Using %d workers", workers))
 
@@ -20,6 +18,9 @@ func Bake(workers int) error {
 	if err != nil {
 		return err
 	}
+
+	finished := make(chan string, len(files))
+	finishedCount := 0
 
 	var bar *pb.ProgressBar
 	if log.Level != logrus.DebugLevel {
@@ -33,17 +34,15 @@ func Bake(workers int) error {
 	var group sync.WaitGroup
 	for i := 0; i < workers; i++ {
 		group.Add(1)
-		go func() {
+		go func(workerId int) {
+			log.Debug(fmt.Sprintf("Worker %d is running", workerId))
 			for task := range tasks {
-				log.Debug(fmt.Sprintf("Worker %d is compiling %s", i, task))
+				log.Debug(fmt.Sprintf("Worker %d is compiling %s", workerId, task))
 				Compile(repository, task)
+				log.Debug(fmt.Sprintf("Worker %d finishes with %s", workerId, task))
 
-				// Non-blocking send
+				finished <- task
 				finishedCount++
-				select {
-				case finished <- task:
-				default:
-				}
 
 				if log.Level != logrus.DebugLevel {
 					bar.Increment()
@@ -52,7 +51,7 @@ func Bake(workers int) error {
 				}
 			}
 			group.Done()
-		}()
+		}(i + 1)
 	}
 
 	// As things arrive in the queue, send them out to the various workers
