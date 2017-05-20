@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
 	"gopkg.in/cheggaaa/pb.v1"
+	"os"
 	"sync"
 )
 
@@ -38,16 +39,22 @@ func Bake(workers int) error {
 			log.Debug(fmt.Sprintf("Worker %d is running", workerId))
 			for task := range tasks {
 				log.Debug(fmt.Sprintf("Worker %d is compiling %s", workerId, task))
-				Compile(repository, task)
-				log.Debug(fmt.Sprintf("Worker %d finishes with %s", workerId, task))
+				_, err := Compile(repository, task)
 
-				finished <- task
-				finishedCount++
-
-				if log.Level != logrus.DebugLevel {
-					bar.Increment()
+				if err != nil {
+					log.Error("Could not compile " + task)
+					os.Exit(1)
 				} else {
-					log.Info(fmt.Sprintf("Finished %d/%d tasks", finishedCount, len(files)))
+					log.Debug(fmt.Sprintf("Worker %d finishes with %s", workerId, task))
+
+					finished <- task
+					finishedCount++
+
+					if log.Level != logrus.DebugLevel {
+						bar.Increment()
+					} else {
+						log.Info(fmt.Sprintf("Finished %d/%d tasks", finishedCount, len(files)))
+					}
 				}
 			}
 			group.Done()

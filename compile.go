@@ -201,6 +201,7 @@ func Compile(directory string, filename string) ([]byte, error) {
 	log.Debug("Running pdflatex for " + filename)
 	output, err := pdflatex(filename)
 	if err != nil {
+		log.Error(string(output))
 		return output, err
 	}
 
@@ -213,12 +214,14 @@ func Compile(directory string, filename string) ([]byte, error) {
 	log.Debug("Running pdflatex again for " + filename)
 	output, err = pdflatex(filename)
 	if err != nil {
+		log.Error(string(output))
 		return output, err
 	}
 
 	log.Debug("Running htlatex on " + filename)
 	output, err = htlatex(filename)
 	if err != nil {
+		log.Error(string(output))
 		return output, err
 	}
 

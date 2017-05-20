@@ -5,7 +5,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/fatih/color"
 	prefixed "github.com/kisonecat/logrus-prefixed-formatter"
-	"github.com/tcnksm/go-latest"
+	//	"github.com/tcnksm/go-latest"
 	"github.com/urfave/cli"
 	"net/url"
 	"os"
@@ -33,28 +33,27 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.3.4"
+	app.Version = "0.4.0"
 
 	// Check to see if this is the newest version
 	go func() {
 		group.Add(1)
-
-		githubTag := &latest.GithubTag{
-			Owner:             "XimeraProject",
-			Repository:        "xake",
-			FixVersionStrFunc: latest.DeleteFrontV(),
-		}
-
-		res, err := latest.Check(githubTag, app.Version)
-		if err != nil {
-			log.Warn("Could not check if " + app.Version + " is the latest version.")
-			log.Warn(err)
-		} else {
-			if res.Outdated {
-				log.Error(app.Version + " is not the latest version of xake.")
-				log.Error(fmt.Sprintf("You should upgrade to %s", res.Current))
+		/*
+			githubTag := &latest.GithubTag{
+				Owner:             "XimeraProject",
+				Repository:        "xake",
+				FixVersionStrFunc: latest.DeleteFrontV(),
 			}
-		}
+				res, err := latest.Check(githubTag, app.Version)
+				if err != nil {
+					log.Warn("Could not check if " + app.Version + " is the latest version.")
+					log.Warn(err)
+				} else {
+					if res.Outdated {
+						log.Error(app.Version + " is not the latest version of xake.")
+						log.Error(fmt.Sprintf("You should upgrade to %s", res.Current))
+					}
+				}*/
 
 		group.Done()
 	}()
@@ -117,7 +116,8 @@ func main() {
 				log.Info("Compiling " + filename + " in .")
 				_, err := Compile(".", filename)
 				if err != nil {
-					log.Error(err)
+					log.Error("Could not compile " + filename)
+					os.Exit(1)
 				}
 				return nil
 			},
@@ -158,6 +158,7 @@ func main() {
 			Aliases: []string{"f, ice"},
 			Usage:   "add a publication tag to the repository",
 			Action: func(c *cli.Context) error {
+				// BADBAD: should verify that we've commited the compiled source files
 				err := Frost()
 				if err != nil {
 					log.Error(err)

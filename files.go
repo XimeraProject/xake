@@ -281,14 +281,15 @@ func FilesInRepository(directory string, condition func(string) (bool, error)) (
 					return err
 				}
 
-				if clean {
-					files = append(files, path)
-				} else {
+				if !clean {
 					log.Warn(path + " is not committed to the repository")
 				}
+
+				files = append(files, path)
+
 			} else {
 				rel, _ := filepath.Rel(directory, path)
-				log.Warn(rel + " differs from what has been committed.")
+				log.Warn(rel + " differs from what has been committed and will be be ignored.")
 			}
 		}
 
