@@ -33,7 +33,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.4.0"
+	app.Version = "0.4.1"
 
 	// Check to see if this is the newest version
 	go func() {
