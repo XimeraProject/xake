@@ -1,6 +1,6 @@
 # Xake
 
-[![GitHub Tag](https://img.shields.io/github/tag/XimeraProject/xake.svg?style=flat-square)][tag]
+[![GitHub tags](https://img.shields.io/github/tag/XimeraProject/xake.svg?style=flat-square)][tag]
 
 Xake is the build tool for Ximera.  It is used to manage the
 conversion of TeX files into .html files, and the publication of the
