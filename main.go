@@ -158,12 +158,16 @@ func main() {
 			Usage:   "add a publication tag to the repository",
 			Action: func(c *cli.Context) error {
 				// BADBAD: should verify that we've commited the compiled source files
-				err := Frost()
+				err := DisplayErrorsAboutUncommittedTexFiles(repository)
 				if err != nil {
 					log.Error(err)
+				} else {
+					err = Frost(app.Version)
+					if err != nil {
+						log.Error(err)
+					}
 				}
 				return err
-
 			},
 		},
 

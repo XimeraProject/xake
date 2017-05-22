@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/libgit2/git2go"
@@ -257,6 +258,39 @@ func IsInRepository(repositoryPath string, filename string) (bool, error) {
 	return true, nil
 }
 
+func DisplayErrorsAboutUncommittedTexFiles(directory string) (result error) {
+	var visit = func(path string, f os.FileInfo, err error) error {
+		passed, err := IsTexDocument(path)
+		if err != nil {
+			return nil
+		}
+
+		if passed {
+			committed, _ := IsInRepository(directory, path)
+			if committed {
+				clean, _ := IsClean(directory, path)
+
+				if !clean {
+					log.Error(path + " is not committed to the repository")
+					result = errors.New("Some source files are not committed to the repository")
+				}
+			} else {
+				log.Error(path + " is not committed to the repository")
+				result = errors.New("Some source files are not committed to the repository")
+			}
+		}
+
+		return nil
+	}
+
+	err := filepath.Walk(directory, visit)
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
 func FilesInRepository(directory string, condition func(string) (bool, error)) ([]string, error) {
 	var files []string
 
@@ -482,6 +516,35 @@ func NeedingPublication(directory string) ([]string, error) {
 		outputs, err := identifyFilesAssociatedWithHtmlFile(outputFilename)
 		if err == nil {
 			results = append(results, outputs...)
+		}
+	}
+
+	return results, nil
+}
+
+func FindLabelAnchorsInRepository(directory string) (map[string]string, error) {
+	results := make(map[string]string)
+
+	filenames, err := TexFilesInRepository(directory)
+	if err != nil {
+		return results, err
+	}
+
+	log.Debug("Walk through all html files to find labels.")
+	for _, filename := range filenames {
+		htmlFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".html"
+		filename, _ := filepath.Rel(directory, filename)
+		filename = strings.TrimSuffix(filename, filepath.Ext(filename))
+
+		ids, err := FindLabelAnchorsInHtml(htmlFilename)
+		if err == nil {
+			for _, id := range ids {
+				if value, ok := results[id]; ok {
+					log.Warn(fmt.Sprintf("\\label{%s} duplicated in %s.tex and in %s.tex", id, value, filename))
+				} else {
+					results[id] = filename
+				}
+			}
 		}
 	}
 

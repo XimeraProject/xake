@@ -71,6 +71,30 @@ func sage(filename string) ([]byte, error) {
 	return cmdOut, err
 }
 
+func FindLabelAnchorsInHtml(htmlFilename string) ([]string, error) {
+	var ids []string
+
+	f, err := os.Open(htmlFilename)
+	defer f.Close()
+	if err != nil {
+		return ids, err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		return ids, err
+	}
+
+	doc.Find("a.ximera-label").Each(func(i int, s *goquery.Selection) {
+		id, exists := s.Attr("id")
+		if exists {
+			ids = append(ids, id)
+		}
+	})
+
+	return ids, err
+}
+
 func readTitleAndAbstract(htmlFilename string) (title string, abstract string, err error) {
 	f, err := os.Open(htmlFilename)
 	defer f.Close()

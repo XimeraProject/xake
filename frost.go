@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/libgit2/git2go"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -36,12 +38,32 @@ func test(repo *git.Repository) error {
 	return nil
 }
 
-func Frost() error {
+type metadata struct {
+	XakeVersion string            `json:"xakeVersion"`
+	Labels      map[string]string `json:"labels"`
+}
+
+func Frost(xakeVersion string) error {
+
+	log.Debug("Find the \\label{}s in .html files")
+	labels, err := FindLabelAnchorsInRepository(repository)
+	if err != nil {
+		return err
+	}
+
+	m := metadata{XakeVersion: xakeVersion, Labels: labels}
+	bytes, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	fmt.Println(bytes)
+	err = ioutil.WriteFile(filepath.Join(repository, "metadata.json"), bytes, 0644)
+	if err != nil {
+		return err
+	}
 
 	filenames, _ := NeedingPublication(repository)
 	filenames = choose(filenames, exists)
-
-	fmt.Println(filenames)
 
 	log.Debug("Opening repository " + repository)
 	repo, err := git.OpenRepository(repository)
