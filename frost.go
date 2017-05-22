@@ -51,17 +51,18 @@ func Frost(xakeVersion string) error {
 		return err
 	}
 
+	log.Debug("Write metadata.json to the repository root")
 	m := metadata{XakeVersion: xakeVersion, Labels: labels}
 	bytes, err := json.Marshal(m)
 	if err != nil {
 		return err
 	}
-	fmt.Println(bytes)
 	err = ioutil.WriteFile(filepath.Join(repository, "metadata.json"), bytes, 0644)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("Determine what files need to be published.")
 	filenames, _ := NeedingPublication(repository)
 	filenames = choose(filenames, exists)
 
@@ -147,9 +148,7 @@ func Frost(xakeVersion string) error {
 		repo.References.Create(tagName, commitOid, false, "xake publish")
 	}
 
-	fmt.Println("committed")
-	fmt.Println(commitOid)
-	fmt.Println((sourceOid.String()))
-
+	fmt.Printf("Created publication commit %s... for commit %s...\n", commitOid.String()[0:7], sourceOid.String()[0:7])
+	fmt.Printf("Your next step is probably `xake serve`")
 	return nil
 }
