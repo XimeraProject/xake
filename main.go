@@ -5,7 +5,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/fatih/color"
 	prefixed "github.com/kisonecat/logrus-prefixed-formatter"
-	"github.com/tcnksm/go-latest"
+	//"github.com/tcnksm/go-latest"
 	"github.com/urfave/cli"
 	"net/url"
 	"os"
@@ -33,29 +33,33 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.4.4"
+	app.Version = "0.4.5"
 
-	// Check to see if this is the newest version
-	go func() {
-		group.Add(1)
-		githubTag := &latest.GithubTag{
-			Owner:             "XimeraProject",
-			Repository:        "xake",
-			FixVersionStrFunc: latest.DeleteFrontV(),
-		}
-		res, err := latest.Check(githubTag, app.Version)
-		if err != nil {
-			log.Warn("Could not check if " + app.Version + " is the latest version.")
-			log.Warn(err)
-		} else {
-			if res.Outdated {
-				log.Error(app.Version + " is not the latest version of xake.")
-				log.Error(fmt.Sprintf("You should upgrade to %s", res.Current))
+	// Check to see if this is the newest version Humorously,
+	// go-latest depends on go>=1.7 because that was when "context"
+	// was added to the main go libraries
+	/*
+		go func() {
+			group.Add(1)
+			githubTag := &latest.GithubTag{
+				Owner:             "XimeraProject",
+				Repository:        "xake",
+				FixVersionStrFunc: latest.DeleteFrontV(),
 			}
-		}
+			res, err := latest.Check(githubTag, app.Version)
+			if err != nil {
+				log.Warn("Could not check if " + app.Version + " is the latest version.")
+				log.Warn(err)
+			} else {
+				if res.Outdated {
+					log.Error(app.Version + " is not the latest version of xake.")
+					log.Error(fmt.Sprintf("You should upgrade to %s", res.Current))
+				}
+			}
 
-		group.Done()
-	}()
+			group.Done()
+		}()
+	*/
 
 	app.EnableBashCompletion = true
 

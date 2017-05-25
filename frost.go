@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 func exists(name string) bool {
@@ -38,26 +39,21 @@ func test(repo *git.Repository) error {
 	return nil
 }
 
+type githubRepository struct {
+	Owner      string `json:"owner"`
+	Repository string `json:"repository"`
+}
+
 type metadata struct {
 	XakeVersion string            `json:"xakeVersion"`
 	Labels      map[string]string `json:"labels"`
+	Github      *githubRepository `json:"github"`
 }
 
 func Frost(xakeVersion string) error {
 
 	log.Debug("Find the \\label{}s in .html files")
 	labels, err := FindLabelAnchorsInRepository(repository)
-	if err != nil {
-		return err
-	}
-
-	log.Debug("Write metadata.json to the repository root")
-	m := metadata{XakeVersion: xakeVersion, Labels: labels}
-	bytes, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(filepath.Join(repository, "metadata.json"), bytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -71,6 +67,42 @@ func Frost(xakeVersion string) error {
 	if err != nil {
 		return err
 	}
+
+	log.Debug("Write metadata.json to the repository root")
+
+	var github *githubRepository
+
+	remotes, _ := repo.Remotes.List()
+	for _, remoteName := range remotes {
+		remote, err := repo.Remotes.Lookup(remoteName)
+		if err == nil {
+			url := remote.Url()
+			githubHttps, _ := regexp.Compile("^https://github.com/([^/]+)/(.*)\\.git$")
+			matches := githubHttps.FindStringSubmatch(url)
+			if len(matches) > 0 {
+				github = &githubRepository{Owner: matches[1], Repository: matches[2]}
+			}
+
+			githubSsh, _ := regexp.Compile("^git@github.com:([^/]+)/(.*)\\.git$")
+			matches = githubSsh.FindStringSubmatch(url)
+			if len(matches) > 0 {
+				github = &githubRepository{Owner: matches[1], Repository: matches[2]}
+			}
+		}
+	}
+
+	m := metadata{XakeVersion: xakeVersion, Labels: labels, Github: github}
+
+	bytes, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(filepath.Join(repository, "metadata.json"), bytes, 0644)
+	if err != nil {
+		return err
+	}
+
+	filenames = append(filenames, filepath.Join(repository, "metadata.json"))
 
 	log.Debug("Opening index...")
 	index, err := repo.Index()
