@@ -104,7 +104,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "url, U",
-			Value: "http://localhost:3000/",
+			Value: "https://ximera.osu.edu/",
 			Usage: "Use the Ximera server hosted at `URL`",
 		},
 	}
