@@ -33,7 +33,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.4.5"
+	app.Version = "0.5.0"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"

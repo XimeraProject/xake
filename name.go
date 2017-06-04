@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/briandowns/spinner"
 	"github.com/libgit2/git2go"
+	"net/url"
 	"time"
 )
 
@@ -39,14 +40,24 @@ func Name(name string) error {
 		return err
 	}
 
+	// Unfortunately, old versions of git don't support the
+	// extraHeader option, so for now let's also include the token as
+	// the password for basic auth
+	u, err := url.Parse(GetRepositoryUrl(name))
+	if err != nil {
+		return err
+	}
+	u.User = "xake"
+	u.Password = token
+
 	_, err = repo.Remotes.Lookup("ximera")
 	if err != nil {
-		_, err = repo.Remotes.Create("ximera", GetRepositoryUrl(name))
+		_, err = repo.Remotes.Create("ximera", u.String())
 		if err != nil {
 			return err
 		}
 	}
-	err = repo.Remotes.SetUrl("ximera", GetRepositoryUrl(name))
+	err = repo.Remotes.SetUrl("ximera", u.String())
 
 	return nil
 }
