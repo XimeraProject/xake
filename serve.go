@@ -10,8 +10,13 @@ import (
 
 func gitPushXimera(ref string) error {
 	args := []string{"push", "ximera"}
+
 	if len(ref) > 0 {
 		args = []string{"push", "ximera", ref}
+	}
+
+	if ref == "master" {
+		args = []string{"push", "--set-upstream", "ximera", ref}
 	}
 
 	yellow := color.New(color.FgYellow)
