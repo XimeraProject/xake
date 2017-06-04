@@ -47,8 +47,7 @@ func Name(name string) error {
 	if err != nil {
 		return err
 	}
-	u.User = "xake"
-	u.Password = token
+	u.User = url.UserPassword("xake", token)
 
 	_, err = repo.Remotes.Lookup("ximera")
 	if err != nil {
