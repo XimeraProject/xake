@@ -181,6 +181,6 @@ func Frost(xakeVersion string) error {
 	}
 
 	fmt.Printf("Created publication commit %s... for commit %s...\n", commitOid.String()[0:7], sourceOid.String()[0:7])
-	fmt.Printf("Your next step is probably `xake serve`")
+	fmt.Printf("Your next step is probably `xake serve`\n")
 	return nil
 }
