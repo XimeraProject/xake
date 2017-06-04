@@ -63,6 +63,12 @@ func Serve() error {
 	}
 
 	err = gitPushXimera(tagName)
+	if err != nil {
+		return nil
+	}
+
+	// It would be better if it printed the URL here
+	log.Info("The xake is served.")
 
 	return nil
 }

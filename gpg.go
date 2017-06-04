@@ -8,6 +8,29 @@ import (
 	"strings"
 )
 
+func firstKey() (string, error) {
+	cmdName := "gpg"
+	cmdArgs := []string{"--list-secret-keys", "--with-colons"}
+
+	cmd := exec.Command(cmdName, cmdArgs...)
+	cmdOut, err := cmd.Output()
+
+	if err != nil {
+		return "", err
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(string(cmdOut)))
+	for scanner.Scan() {
+		line := scanner.Text()
+		data := strings.Split(line, ":")
+		if data[0] == "sec" {
+			return data[4], nil
+		}
+	}
+
+	return "", err
+}
+
 func defaultKey() (string, error) {
 	cmdName := "gpgconf"
 	cmdArgs := []string{"--list-options", "gpg"}
@@ -16,7 +39,7 @@ func defaultKey() (string, error) {
 	cmdOut, err := cmd.Output()
 
 	if err != nil {
-		return "", err
+		return firstKey()
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(string(cmdOut)))
