@@ -169,6 +169,8 @@ func Frost(xakeVersion string) error {
 		}
 
 		branchReference.SetTarget(sourceOid, "xake publish reverting back to source code")
+	} else {
+		log.Warn("HEAD is not a symbolic reference.")
 	}
 
 	// Create tag
