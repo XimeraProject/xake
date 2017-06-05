@@ -78,6 +78,7 @@ also performs a `git push` to send the commit to the server.
 
 ```
 mkdir -p ~/go/src/github.com/ximeraproject
+export GOPATH=$HOME/go
 cd ~/go/src/github.com/ximeraproject
 git clone https://github.com/XimeraProject/xake.git
 cd xake
