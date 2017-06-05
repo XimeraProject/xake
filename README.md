@@ -84,6 +84,7 @@ export GOPATH=$HOME/go
 cd ~/go/src/github.com/ximeraproject
 git clone https://github.com/XimeraProject/xake.git
 cd xake
+go get .
 go build .
 
 ```
