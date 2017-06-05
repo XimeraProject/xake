@@ -41,7 +41,9 @@ alternatively, find someone else who has permission to use
 
 To share your signed public key with Ximera, use the command
 
-`gpg --keyserver https://ximera.osu.edu/ --send-key YOUR-GPG-KEY-ID`
+`gpg --keyserver hkps://ximera.osu.edu/ --send-key YOUR-GPG-KEY-ID`
+
+(You may need `gnupg-curl` installed.)
 
 At that point, `xake --key YOUR-GPG-KEY-ID name reponame` will create
 the remote repository `https://ximera.osu.edu/reponame.git` and you
@@ -85,3 +87,4 @@ cd xake
 go build .
 
 ```
+1
