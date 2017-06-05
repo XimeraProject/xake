@@ -74,6 +74,13 @@ has commit hash SHA, then the publised files can be found in a tag
 publications/SHA.  The command `xake frost` both creates this tag and
 also performs a `git push` to send the commit to the server.
 
-## Getting started with cocalc
+# Installing xake
 
-xake -K AB220F40 -U https://ximera.osu.edu/ name trash2
+```
+mkdir -p ~/go/src/github.com/ximeraproject
+cd ~/go/src/github.com/ximeraproject
+git clone https://github.com/XimeraProject/xake.git
+cd xake
+go build .
+
+```
