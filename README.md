@@ -43,10 +43,10 @@ To share your signed public key with Ximera, use the command
 
 `gpg --keyserver https://ximera.osu.edu/ --send-key YOUR-GPG-KEY-ID`
 
-At that point, `xake --key YOUR-GPG-KEY-ID create reponame` will
-create the remote repository `https://ximera.osu.edu/reponame.git` and
-you will then be able to `git push ximera master` to store your work
-on ximera.osu.edu.
+At that point, `xake --key YOUR-GPG-KEY-ID name reponame` will create
+the remote repository `https://ximera.osu.edu/reponame.git` and you
+will then be able to `git push ximera master` to store your work on
+ximera.osu.edu.
 
 ## Theory of Operation
 
@@ -73,3 +73,7 @@ assets are **also** stored in the git repository; if the source code
 has commit hash SHA, then the publised files can be found in a tag
 publications/SHA.  The command `xake frost` both creates this tag and
 also performs a `git push` to send the commit to the server.
+
+## Getting started with cocalc
+
+xake -K AB220F40 -U https://ximera.osu.edu/ name trash2
