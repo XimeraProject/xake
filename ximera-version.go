@@ -74,16 +74,7 @@ func fetchXimeraClsGithubSha() (string, error) {
 
 // fetchXimeraLocalSha gets the HEAD commit from wherever the
 // ximera.cls file is stored
-func fetchXimeraClsLocalSha() (string, error) {
-	// get ximera.cls pathname
-	ximeraClsFilename, err := locateXimeraCls()
-
-	if err != nil {
-		return "", err
-	}
-
-	ximeraClsPath := filepath.Dir(ximeraClsFilename)
-
+func fetchXimeraClsLocalSha(ximeraClsPath string) (string, error) {
 	log.Debugf("Checking local SHA for repository in %s", ximeraClsPath)
 
 	repo, err := git.OpenRepository(ximeraClsPath)
@@ -102,7 +93,16 @@ func fetchXimeraClsLocalSha() (string, error) {
 }
 
 func CheckXimeraVersion() error {
-	localSha, err := fetchXimeraClsLocalSha()
+	ximeraClsFilename, err := locateXimeraCls()
+
+	if err != nil {
+		log.Warn("You need to install https://github.com/ximeraProject/ximeraLatex into ~/texmf/tex/latex")
+		return err
+	}
+
+	ximeraClsPath := filepath.Dir(ximeraClsFilename)
+
+	localSha, err := fetchXimeraClsLocalSha(ximeraClsPath)
 	if err != nil {
 		return err
 	}
@@ -114,6 +114,7 @@ func CheckXimeraVersion() error {
 
 	if remoteSha != localSha {
 		log.Warn("The version of ximeraLatex on GitHub differs from the version you have installed.")
+		log.Warn("Use (cd " + ximeraClsPath + " && git checkout master && git pull) to update.")
 	}
 
 	return nil
