@@ -156,22 +156,7 @@ func Frost(xakeVersion string) error {
 	}
 	sourceOid := headReference.Target()
 
-	commitOid, err := repo.CreateCommit("HEAD", author, committer, message, tree, headCommit)
-
-	headReference, err = repo.References.Lookup("HEAD")
-	if err != nil {
-		return err
-	}
-	if headReference.Type() == git.ReferenceSymbolic {
-		branchReference, err := repo.References.Lookup(headReference.SymbolicTarget())
-		if err != nil {
-			return err
-		}
-
-		branchReference.SetTarget(sourceOid, "xake publish reverting back to source code")
-	} else {
-		log.Warn("HEAD is not a symbolic reference.")
-	}
+	commitOid, err := repo.CreateCommit("", author, committer, message, tree, headCommit)
 
 	// Create tag
 	tagName := "refs/tags/publications/" + (sourceOid.String())
