@@ -71,19 +71,19 @@ func Frost(xakeVersion string) error {
 	log.Debug("Write metadata.json to the repository root")
 
 	var github *githubRepository
+	githubHttps, _ := regexp.Compile("^https://github.com/([^/]+)/(.*)\\.git$")
+	githubSsh, _ := regexp.Compile("^git@github.com:([^/]+)/(.*)\\.git$")
 
 	remotes, _ := repo.Remotes.List()
 	for _, remoteName := range remotes {
 		remote, err := repo.Remotes.Lookup(remoteName)
 		if err == nil {
 			url := remote.Url()
-			githubHttps, _ := regexp.Compile("^https://github.com/([^/]+)/(.*)\\.git$")
 			matches := githubHttps.FindStringSubmatch(url)
 			if len(matches) > 0 {
 				github = &githubRepository{Owner: matches[1], Repository: matches[2]}
 			}
 
-			githubSsh, _ := regexp.Compile("^git@github.com:([^/]+)/(.*)\\.git$")
 			matches = githubSsh.FindStringSubmatch(url)
 			if len(matches) > 0 {
 				github = &githubRepository{Owner: matches[1], Repository: matches[2]}
@@ -156,33 +156,25 @@ func Frost(xakeVersion string) error {
 	}
 	sourceOid := headReference.Target()
 
-	commitOid, err := repo.CreateCommit("HEAD", author, committer, message, tree, headCommit)
+	commitOid, err := repo.CreateCommit("", author, committer, message, tree, headCommit)
 
-	headReference, err = repo.References.Lookup("HEAD")
-	if err != nil {
-		return err
-	}
-	if headReference.Type() == git.ReferenceSymbolic {
-		branchReference, err := repo.References.Lookup(headReference.SymbolicTarget())
-		if err != nil {
-			return err
-		}
-
-		branchReference.SetTarget(sourceOid, "xake publish reverting back to source code")
-	} else {
-		log.Warn("HEAD is not a symbolic reference.")
-	}
-
-	// Create tag
+	// Create or update tag
 	tagName := "refs/tags/publications/" + (sourceOid.String())
 	tagReference, err := repo.References.Lookup(tagName)
+	var created string
 	if err == nil {
+		taggedCommit,err2 := repo.LookupCommit( tagReference.Target() )
+		if err2 == nil && oid.Equal(taggedCommit.TreeId()) {
+			fmt.Printf("No changes since last frost, so we'll just chill.\n")
+			return nil
+		}
 		tagReference.SetTarget(commitOid, "xake re-publish")
+		created = "Updated"
 	} else {
 		repo.References.Create(tagName, commitOid, false, "xake publish")
+		created = "Created"
 	}
-
-	fmt.Printf("Created publication commit %s... for commit %s...\n", commitOid.String()[0:7], sourceOid.String()[0:7])
+	fmt.Printf("%s publication commit %s... for commit %s...\n", created, commitOid.String()[0:7], sourceOid.String()[0:7])
 	fmt.Printf("Your next step is probably `xake serve`\n")
 	return nil
 }
