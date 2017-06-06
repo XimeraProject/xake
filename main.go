@@ -202,6 +202,19 @@ func main() {
 		},
 
 		{
+			Name:    "defrost",
+			Aliases: []string{"d"},
+			Usage:   "remove the most recent publication tag from the server",
+			Action: func(c *cli.Context) error {
+				err := Defrost()
+				if err != nil {
+					log.Error(err)
+				}
+				return err
+			},
+		},
+
+		{
 			Name:    "view",
 			Hidden:  true,
 			Aliases: []string{"v"},
