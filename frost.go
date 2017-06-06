@@ -71,19 +71,19 @@ func Frost(xakeVersion string) error {
 	log.Debug("Write metadata.json to the repository root")
 
 	var github *githubRepository
+	githubHttps, _ := regexp.Compile("^https://github.com/([^/]+)/(.*)\\.git$")
+	githubSsh, _ := regexp.Compile("^git@github.com:([^/]+)/(.*)\\.git$")
 
 	remotes, _ := repo.Remotes.List()
 	for _, remoteName := range remotes {
 		remote, err := repo.Remotes.Lookup(remoteName)
 		if err == nil {
 			url := remote.Url()
-			githubHttps, _ := regexp.Compile("^https://github.com/([^/]+)/(.*)\\.git$")
 			matches := githubHttps.FindStringSubmatch(url)
 			if len(matches) > 0 {
 				github = &githubRepository{Owner: matches[1], Repository: matches[2]}
 			}
 
-			githubSsh, _ := regexp.Compile("^git@github.com:([^/]+)/(.*)\\.git$")
 			matches = githubSsh.FindStringSubmatch(url)
 			if len(matches) > 0 {
 				github = &githubRepository{Owner: matches[1], Repository: matches[2]}
