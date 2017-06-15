@@ -33,7 +33,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.5.2"
+	app.Version = "0.6.1"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"
@@ -189,6 +189,19 @@ func main() {
 		},
 
 		{
+			Name:    "data",
+			Aliases: []string{"d"},
+			Usage:   "download the learning record store",
+			Action: func(c *cli.Context) error {
+				err := DownloadData()
+				if err != nil {
+					log.Error(err)
+				}
+				return err
+			},
+		},
+
+		{
 			Name:    "view",
 			Hidden:  true,
 			Aliases: []string{"v"},
@@ -250,7 +263,7 @@ func main() {
 		log.Debug("Using GPG key " + keyFingerprint)
 
 		urlString := c.String("url")
-		// This should actually default to whatever the ximera remote is in the current repo
+		// BADBAD: This should actually default to whatever the ximera remote is in the current repo
 		ximeraUrl, err = url.Parse(urlString)
 		if err != nil {
 			return err
