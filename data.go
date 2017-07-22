@@ -142,11 +142,13 @@ func processEvents(process func(string) error) error {
 
 func DumpEventsAsJSON() error {
 	dump := func(payload string) error {
-		fmt.Printf("%s\n", string(payload))
+		fmt.Printf("%s,\n", string(payload))
 		return nil
 	}
 
+	fmt.Printf("[\n")
 	processEvents(dump)
+	fmt.Printf("]\n")
 	return nil
 }
 
