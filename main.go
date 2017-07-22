@@ -33,7 +33,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.6.2"
+	app.Version = "0.7.2"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"
@@ -63,8 +63,6 @@ func main() {
 
 	app.EnableBashCompletion = true
 
-	fmt.Printf("This is xake, Version " + app.Version + "\n\n")
-
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
 		Usage: "print the version",
@@ -79,6 +77,10 @@ func main() {
 	repository, _ = os.Getwd()
 
 	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "quiet, q",
+			Usage: "Do not display extra information",
+		},
 		cli.BoolFlag{
 			Name:  "verbose, v, debug, d",
 			Usage: "Display additional debugging information",
@@ -190,14 +192,42 @@ func main() {
 
 		{
 			Name:    "data",
-			Aliases: []string{"d"},
-			Usage:   "download the learning record store",
-			Action: func(c *cli.Context) error {
-				err := DownloadData()
-				if err != nil {
-					log.Error(err)
-				}
-				return err
+			Aliases: []string{"t"},
+			Usage:   "operate on the learning record store",
+			Subcommands: []cli.Command{
+				{
+					Name:  "json",
+					Usage: "dump log.sz as json entries",
+					Action: func(c *cli.Context) error {
+						err := DumpEventsAsJSON()
+						if err != nil {
+							log.Error(err)
+						}
+						return err
+					},
+				},
+				{
+					Name:  "csv",
+					Usage: "dump log.sz as comma-separated values",
+					Action: func(c *cli.Context) error {
+						err := DumpEventsAsCSV()
+						if err != nil {
+							log.Error(err)
+						}
+						return err
+					},
+				},
+				{
+					Name:  "download",
+					Usage: "download events to the log.sz file",
+					Action: func(c *cli.Context) error {
+						err := DownloadData()
+						if err != nil {
+							log.Error(err)
+						}
+						return err
+					},
+				},
 			},
 		},
 
@@ -231,6 +261,10 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
+		if !c.Bool("quiet") {
+			fmt.Printf("This is xake, Version " + app.Version + "\n\n")
+		}
+
 		if c.Bool("verbose") {
 			log.Level = logrus.DebugLevel
 		}
