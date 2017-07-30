@@ -45,15 +45,22 @@ type githubRepository struct {
 }
 
 type metadata struct {
-	XakeVersion string            `json:"xakeVersion"`
-	Labels      map[string]string `json:"labels"`
-	Github      *githubRepository `json:"github"`
+	XakeVersion string                       `json:"xakeVersion"`
+	Labels      map[string]string            `json:"labels"`
+	Github      *githubRepository            `json:"github"`
+	Xourses     map[string]map[string]string `json:"xourses"`
 }
 
 func Frost(xakeVersion string) error {
 
 	log.Debug("Find the \\label{}s in .html files")
 	labels, err := FindLabelAnchorsInRepository(repository)
+	if err != nil {
+		return err
+	}
+
+	log.Debug("Find xourse metadata in .html files")
+	xourses, err := FindXoursesInRepository(repository)
 	if err != nil {
 		return err
 	}
@@ -91,7 +98,7 @@ func Frost(xakeVersion string) error {
 		}
 	}
 
-	m := metadata{XakeVersion: xakeVersion, Labels: labels, Github: github}
+	m := metadata{XakeVersion: xakeVersion, Labels: labels, Github: github, Xourses: xourses}
 
 	bytes, err := json.Marshal(m)
 	if err != nil {
@@ -163,7 +170,7 @@ func Frost(xakeVersion string) error {
 	tagReference, err := repo.References.Lookup(tagName)
 	var created string
 	if err == nil {
-		taggedCommit,err2 := repo.LookupCommit( tagReference.Target() )
+		taggedCommit, err2 := repo.LookupCommit(tagReference.Target())
 		if err2 == nil && oid.Equal(taggedCommit.TreeId()) {
 			fmt.Printf("No changes since last frost, so we'll just chill.\n")
 			return nil

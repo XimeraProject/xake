@@ -550,3 +550,75 @@ func FindLabelAnchorsInRepository(directory string) (map[string]string, error) {
 
 	return results, nil
 }
+
+func isXourseHtmlFile(htmlFilename string) (bool, error) {
+	f, err := os.Open(htmlFilename)
+	defer f.Close()
+	if err != nil {
+		return false, err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		return false, err
+	}
+
+	xourseFile := false
+	doc.Find("meta[name=\"description\"]").Each(func(i int, s *goquery.Selection) {
+		content, exists := s.Attr("content")
+		if exists {
+			if content == "xourse" {
+				xourseFile = true
+			}
+		}
+	})
+
+	return xourseFile, nil
+}
+
+func readXourseHtmlMetadata(htmlFilename string) (map[string]string, error) {
+	results := make(map[string]string)
+
+	f, err := os.Open(htmlFilename)
+	defer f.Close()
+	if err != nil {
+		return results, err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		return results, err
+	}
+
+	title := doc.Find("title").Contents().Text()
+	results["title"] = title
+
+	// BADBAD: should also grab an xourse icon, a priority, etc.
+
+	return results, nil
+}
+
+func FindXoursesInRepository(directory string) (map[string]map[string]string, error) {
+	results := make(map[string]map[string]string)
+
+	filenames, err := TexFilesInRepository(directory)
+	if err != nil {
+		return results, err
+	}
+
+	log.Debug("Walk through all html files to find xourse files.")
+	for _, filename := range filenames {
+		htmlFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".html"
+		filename, _ := filepath.Rel(directory, filename)
+		filename = strings.TrimSuffix(filename, filepath.Ext(filename))
+
+		ok, err := isXourseHtmlFile(htmlFilename)
+		if err == nil {
+			if ok {
+				results[filename], _ = readXourseHtmlMetadata(htmlFilename)
+			}
+		}
+	}
+
+	return results, nil
+}
