@@ -15,6 +15,7 @@ before_install:
 - mkdir -p ${GOPATH}/bin
 install:
 - cd $GOPATH/src/github.com/XimeraProject/xake
+- go get .
 - go install
 script: echo "pass"
 before_deploy:
