@@ -12,9 +12,12 @@ env:
   
 before_install:
 - sudo apt-get -qq update
-- sudo apt-get install libgit2-dev
 - mkdir -p ${GOPATH}/bin
 install:
+- go get -d github.com/libgit2/git2go
+- cd $GOPATH/src/github.com/libgit2/git2go
+- git submodule update --init
+- make install
 - cd $GOPATH/src/github.com/XimeraProject/xake
 - go get .
 - go install
