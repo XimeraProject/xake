@@ -12,6 +12,7 @@ env:
   
 before_install:
 - sudo apt-get -qq update
+- sudo apt-get -qq libgit2-dev
 - mkdir -p ${GOPATH}/bin
 install:
 - cd $GOPATH/src/github.com/XimeraProject/xake
