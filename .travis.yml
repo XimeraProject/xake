@@ -12,6 +12,8 @@ env:
   
 before_install:
 - sudo apt-get -qq update
+- sudo apt-get install libssh2-1-dev
+- sudo apt-get install libhttp-parser-dev
 - mkdir -p ${GOPATH}/bin
 install:
 - export PKG_CONFIG_PATH=$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/build
@@ -19,10 +21,11 @@ install:
 - cd $GOPATH/src/github.com/libgit2/git2go
 - git submodule update --init
 - export CGO_CFLAGS="-I$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/include -L$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/build"
-- make install
+- make install-static
 - cd $GOPATH/src/github.com/XimeraProject/xake
-- go get ./...
-- go install
+- go get  ./...
+- go build -ldflags "-linkmode external -extldflags -static"
+
 
 script: echo "pass"
 before_deploy:
