@@ -4,7 +4,7 @@ services:
 - docker
 language: go
 go:
-- tip
+- 1.8
 env:
   global:
   - MYAPP=xake
@@ -17,7 +17,7 @@ install:
 - go get -d github.com/libgit2/git2go
 - cd $GOPATH/src/github.com/libgit2/git2go
 - git submodule update --init
-- make install
+- make install || true
 - cd $GOPATH/src/github.com/XimeraProject/xake
 - go get .
 - go install
