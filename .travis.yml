@@ -20,7 +20,7 @@ install:
 - git submodule update --init
 - make install-static
 - cd $GOPATH/src/github.com/XimeraProject/xake
-- go get .
+- go get ./...
 - go install
 
 script: echo "pass"
