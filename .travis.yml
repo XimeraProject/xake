@@ -8,14 +8,13 @@ go:
 env:
   global:
   - MYAPP=xake
-  - MYEMAIL=kisonecat@gmail.com
   - secure: W/UJXpl0nJqFHgI9DVDkmvmW8Uwyyr8WX+OMSisuWtujA8x2+gOfJY4Ad67I7WneZPeR56N3assG8DVRpiVBfb4EhyqdjoCL2dWIVjRA0LVz7SCzLmL0gk+WvSJ2zsNO52U+uPUkHq3E5Zl0L2cWVBh55i4/vXellPcsMkvJrGHni1aqTtk/3tzGd9vlcX1CXh4ZcHNswfdHVTK+KNvjDVqr2yl7P6Tz8qa2hK78r28PVI97NI4+Lgzr22SiT5WwQyERNb4WEh71bmF9WZWgVctq1vy9nghJavN9ViR6bJmMybh7mqXty048nEy7Pz+y27FlQVtFflglwyk3/Dli1iWjRG7X0Buq5Twb75cHl7/EeBgWlil+Kk6aoeDUUjbYjw/4h6OHvVATzmX/9Te6Hq8qhoUHI+gdCMk1kJ4duZi1EmGl0MtqbJyI+ZPfqA8jN5PF0RpTK9HC3bJwQaPdz/42F4RM1jLiH5DMSl3NxEF12Hemq6NQSWfQE0NT/40z2b8TBFvhhIdWn2vk2pbCfz2XfZ5EcMfLYMYHqvYdxA3V7668KJnWmgPG5doSJUkbTBL/HARL/p1XJVL3r8hTrqJi1D52TF+MzkD4FrMwFKogmrcK5gzJdvzXP3ON9fa3FfJduIi42e6pQfvPqMS6RHgWh9WuYN95i17Wmqo6Byg=
   
 before_install:
 - sudo apt-get -qq update
 - mkdir -p ${GOPATH}/bin
 install:
-- cd $GOPATH/src/github.com/ximeraproject/xake
+- cd $GOPATH/src/github.com/XimeraProject/xake
 - go install
 script: echo "pass"
 before_deploy:
@@ -25,10 +24,10 @@ before_deploy:
 - GOOS=linux GOARCH=amd64 go build --ldflags "-X main.VERSION=${TRAVIS_TAG}" -o build/amd64/xake
   main.go
 - curl -L https://raw.githubusercontent.com/mh-cbon/go-bin-deb/master/create-pkg.sh
-  | GH=ximeraproject/xake sh -xe
+  | GH=XimeraProject/xake sh -xe
 after_deploy:
 - curl -L https://raw.githubusercontent.com/mh-cbon/go-bin-deb/master/setup-repository.sh
-  | GH=ximeraproject/xake EMAIL=$MYEMAIL sh -xe
+  | GH=XimeraProject/xake EMAIL=kisonecat@gmail.com sh -xe
 deploy:
   provider: releases
   api_key:
