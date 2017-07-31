@@ -18,9 +18,9 @@ install:
 - go get -d github.com/libgit2/git2go
 - cd $GOPATH/src/github.com/libgit2/git2go
 - git submodule update --init
+- export CGO_CFLAGS="-I$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/include -L$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/build"
 - make install
 - cd $GOPATH/src/github.com/XimeraProject/xake
-- export CGO_CFLAGS="-I$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/include -L$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/build"
 - go get ./...
 - go install
 
