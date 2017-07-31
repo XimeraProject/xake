@@ -20,12 +20,10 @@ install:
 - go get -d github.com/libgit2/git2go
 - cd $GOPATH/src/github.com/libgit2/git2go
 - git submodule update --init
-- export CGO_CFLAGS="-I$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/include -L$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/build"
+- export CGO_CFLAGS="-I$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/include"
 - make install-static
 - cd $GOPATH/src/github.com/XimeraProject/xake
-- go get -ldflags "-linkmode external -extldflags -static" ./...
-- go build -ldflags "-linkmode external -extldflags -static"
-
+- go get -tags static .
 
 script: echo "pass"
 before_deploy:
