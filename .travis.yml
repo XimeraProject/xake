@@ -23,7 +23,7 @@ install:
 - export CGO_CFLAGS="-I$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/include -L$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/build"
 - make install-static
 - cd $GOPATH/src/github.com/XimeraProject/xake
-- go get  ./...
+- go get -ldflags "-linkmode external -extldflags -static" ./...
 - go build -ldflags "-linkmode external -extldflags -static"
 
 
