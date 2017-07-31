@@ -14,10 +14,11 @@ before_install:
 - sudo apt-get -qq update
 - mkdir -p ${GOPATH}/bin
 install:
+- export PKG_CONFIG_PATH=$GOPATH/src/github.com/libgit2/git2go/vendor/libgit2/build
 - go get -d github.com/libgit2/git2go
 - cd $GOPATH/src/github.com/libgit2/git2go
 - git submodule update --init
-- make install || true
+- make install
 - cd $GOPATH/src/github.com/XimeraProject/xake
 - go get .
 - go install
