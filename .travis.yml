@@ -33,8 +33,8 @@ before_deploy:
 - "$GOPATH/bin/go-bin-rpm generate -a amd64 --version ${TRAVIS_TAG/v/} -o $GOPATH/src/github.com/XimeraProject/xake/build/xake-${TRAVIS_TAG/v/}.x86_64.rpm"
 - mkdir -p usr/bin
 - cp build/amd64/xake usr/bin/xake
-- tar -cvf build/xake.tar usr/bin/xake
-- gzip -9 build/xake.tar
+- tar -cvf build/xake-${TRAVIS_TAG/v/}.tar usr/bin/xake
+- gzip -9 build/xake-${TRAVIS_TAG/v/}.tar
 
 after_deploy:
 - echo "pass"
