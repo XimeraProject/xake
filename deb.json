@@ -1,0 +1,26 @@
+{
+  "name": "xake",
+  "maintainer": "Jim Fowler <kisonecat@gmail.com>",
+  "files": [
+    {
+      "from": "build/!arch!/!name!",
+      "to": "/usr/bin",
+      "base": "build/!arch!",
+      "fperm": "0755"
+    },
+  ],
+  "copyrights": [
+    {
+      "files": "*",
+      "copyright": "2017 Jim Fowler <kisonecat@gmail.com>",
+      "license": "GPLv3",
+      "file": "LICENSE"
+    }
+  ],
+  "envs": {
+  },
+  "depends": [
+    "libc6"
+  ],
+  "description": "convert .tex files into .html files",
+}
