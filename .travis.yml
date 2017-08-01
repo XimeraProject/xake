@@ -1,5 +1,4 @@
 sudo: required
-
 services:
 - docker
 language: go
@@ -10,7 +9,6 @@ env:
   - MYAPP=xake
   - MYEMAIL=kisonecat@gmail.com
   - secure: W/UJXpl0nJqFHgI9DVDkmvmW8Uwyyr8WX+OMSisuWtujA8x2+gOfJY4Ad67I7WneZPeR56N3assG8DVRpiVBfb4EhyqdjoCL2dWIVjRA0LVz7SCzLmL0gk+WvSJ2zsNO52U+uPUkHq3E5Zl0L2cWVBh55i4/vXellPcsMkvJrGHni1aqTtk/3tzGd9vlcX1CXh4ZcHNswfdHVTK+KNvjDVqr2yl7P6Tz8qa2hK78r28PVI97NI4+Lgzr22SiT5WwQyERNb4WEh71bmF9WZWgVctq1vy9nghJavN9ViR6bJmMybh7mqXty048nEy7Pz+y27FlQVtFflglwyk3/Dli1iWjRG7X0Buq5Twb75cHl7/EeBgWlil+Kk6aoeDUUjbYjw/4h6OHvVATzmX/9Te6Hq8qhoUHI+gdCMk1kJ4duZi1EmGl0MtqbJyI+ZPfqA8jN5PF0RpTK9HC3bJwQaPdz/42F4RM1jLiH5DMSl3NxEF12Hemq6NQSWfQE0NT/40z2b8TBFvhhIdWn2vk2pbCfz2XfZ5EcMfLYMYHqvYdxA3V7668KJnWmgPG5doSJUkbTBL/HARL/p1XJVL3r8hTrqJi1D52TF+MzkD4FrMwFKogmrcK5gzJdvzXP3ON9fa3FfJduIi42e6pQfvPqMS6RHgWh9WuYN95i17Wmqo6Byg=
-  
 before_install:
 - sudo apt-get -qq update
 - echo we do not actually want to depend on libssh2 and http-parser so
@@ -28,40 +26,27 @@ install:
 - make install-static
 - cd $GOPATH/src/github.com/XimeraProject/xake
 - go get -tags static .
-
 script: echo "pass"
-
 before_deploy:
 - mkdir -p build/amd64
 - GOOS=linux GOARCH=amd64 go build -tags static -o build/amd64/xake .
 - go get -u github.com/mh-cbon/go-bin-deb
 - go get -u github.com/mh-cbon/go-bin-rpm
-- $GOPATH/bin/go-bin-deb generate -a amd64 --version ${TRAVIS_TAG/v/} -w $(mktemp -d) -o $GOPATH/src/github.com/XimeraProject/xake/build/xake-amd64.deb
-- $GOPATH/bin/go-bin-rpm generate -a amd64 --version ${TRAVIS_TAG/v/} -o $GOPATH/src/github.com/XimeraProject/xake/build/xake-amd64.rpm
-
+- "$GOPATH/bin/go-bin-deb generate -a amd64 --version ${TRAVIS_TAG/v/} -w $(mktemp
+  -d) -o $GOPATH/src/github.com/XimeraProject/xake/build/xake_${TRAVIS_TAG/v/}_amd64.deb"
+- "$GOPATH/bin/go-bin-rpm generate -a amd64 --version ${TRAVIS_TAG/v/} -o $GOPATH/src/github.com/XimeraProject/xake/build/xake-${TRAVIS_TAG/v/}.x86_64.rpm"
 after_deploy:
 - echo "pass"
 
 deploy:
-  - provider: packagecloud
-    repository: xake
-    username: kisonecat
-    token:
-      secure: "XSIz1Jo4GOIvSSZyGedJtlxRmWggrC0Fpd6InrCpwMTuWpi415/9jWHG/QZ5Ablp/Zt6YF0uMf5WJsccvBRGLmmZsDO3Ycu+dw+trbpeGkOKlHrzCNX50t/FeFHL2/j5mKPmGB1Z3x7qQrlk2G5kdFPrMs1LB/pjnQdTTKjfLhTkq8j/webyjfQYR7YQ4gWMtYFxUfVLtoMf/YFJnP4089yO7LipPqSTDpxaCbZXmU75/2gZKMsmS21zW6Z6wpxBw8VN+8aoiIvzUcbB8CrE5gWTclVFklcEy5FGy5R5eqbj/1H4NYk23PTOKRTopxOTTZJkMpC9Hq3Htqc1xbziXmUS4yMSIHjizkppMVhtOyndrnBdDTycDAEBFihwW69JtHFUmhUcdGgUxHeRxU0r3WFxUC/xnoPZXnN8RllpPepmdeMcMMOkJW1MrkM88R0T45n7s+ZE/tbZXd7Ilal9gwaYqBsIY63uQgNGimfcNH8Nz6LUh043ydFElbaHBhQaVX4XcHfYBvU/XiSK5JEtz/9/MFVIvnn+oFnzEAJYe+JLUknUxjd6qVkhJRZ5TU1fciZ7D7pGkQJ2SoGPQQsRB66dYN2GaIaBXar4ZJB+KU5oAmfEv5cWc78GVwG52Lj3qnGeKU9QHSZlgvMw+aevbN1LSK1VG1zkt6xGrhXNMmg="
-    dist: "ubuntu/trusty"
-    local-dir: build
-    skip_cleanup: true
-    package_glob: "*.deb"
-    on:
-      tags: true
-  - provider: packagecloud
-    repository: xake
-    username: kisonecat
-    token:
-      secure: "XSIz1Jo4GOIvSSZyGedJtlxRmWggrC0Fpd6InrCpwMTuWpi415/9jWHG/QZ5Ablp/Zt6YF0uMf5WJsccvBRGLmmZsDO3Ycu+dw+trbpeGkOKlHrzCNX50t/FeFHL2/j5mKPmGB1Z3x7qQrlk2G5kdFPrMs1LB/pjnQdTTKjfLhTkq8j/webyjfQYR7YQ4gWMtYFxUfVLtoMf/YFJnP4089yO7LipPqSTDpxaCbZXmU75/2gZKMsmS21zW6Z6wpxBw8VN+8aoiIvzUcbB8CrE5gWTclVFklcEy5FGy5R5eqbj/1H4NYk23PTOKRTopxOTTZJkMpC9Hq3Htqc1xbziXmUS4yMSIHjizkppMVhtOyndrnBdDTycDAEBFihwW69JtHFUmhUcdGgUxHeRxU0r3WFxUC/xnoPZXnN8RllpPepmdeMcMMOkJW1MrkM88R0T45n7s+ZE/tbZXd7Ilal9gwaYqBsIY63uQgNGimfcNH8Nz6LUh043ydFElbaHBhQaVX4XcHfYBvU/XiSK5JEtz/9/MFVIvnn+oFnzEAJYe+JLUknUxjd6qVkhJRZ5TU1fciZ7D7pGkQJ2SoGPQQsRB66dYN2GaIaBXar4ZJB+KU5oAmfEv5cWc78GVwG52Lj3qnGeKU9QHSZlgvMw+aevbN1LSK1VG1zkt6xGrhXNMmg="
-    dist: "el/5"
-    local-dir: build
-    skip_cleanup: true
-    package_glob: "*.rpm"
-    on:
-      tags: true
+  provider: releases
+  api_key:
+    secure: QVsk4OoHTt3PFbHAWVF/BKT8IisFbZ7vYXXEd0CJyRHhfqloph62LSt5s6nwN4TGef0nBusRsIQ0uqDfHlgwW3Yi13zuDKZBW1/3jfPf7UFey62MNv3hbbAFkRhXFdZYQb2HKyj8tIM981DQD8dpk7wnPAQYjYMpynBZsnHIN4+LxumnsUd1CtI0pjQjQaDG73gyByfW1CjWSANCFSBK0d7Up81AIiKvzrISH/2e7n5ZOphgSBpeDi/2FTyONNqgQ0pErZ58CYdqe7XhI2bCCey/SJwd8XlTxPLSoAkIwtwSWSidIyCy8c6jdsoJu4ohIXEZ9pIymBxYeAkcatSl379C1TqKTeHiqt36gNddkkAa9uTtOlmmaY//oE2RQQYB3ocPnb/taP3q2KXmQS6Owe3bwESjPzSQxzJuqKv8kWIQh3uA7DCGmScZTQGD0stcb3kj0flBEhB6i8RDwGjkpY46fymKj/EjSpWo95Z413hdTKefqzQT0D3W14kln8y7R88Gwz5mHXWpSe5CIynaN7PSvYLVGrSviyqt3s+ssrA3dmbMG54OJ0SHW3/vIZpClHDpLk6YDg3HgS07+Ty6pSjP+S9QR2QTgY6ZKxRP2uykeM5LolxCB3COHHPVKTK3dvCXAyAyyew22LrmRsi1K9J9f08jVuSs/2MosI37eeg=
+  skip_cleanup: true
+  file_glob: true  
+  file:
+    - "build/*.rpm"
+    - "build/*.deb"
+    - "build/amd64/xake"
+  on:
+    tags: true
