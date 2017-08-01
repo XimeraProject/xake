@@ -2,7 +2,7 @@
   "name": "xake",
   "summary": "convert .tex files to .html files",
   "description": "convert .tex files to .html files",
-  "changelog-cmd": "changelog rpm",
+  "changelog": "changelog.md",
   "license": "LICENSE.md",
   "url": "https://github.com/XimeraProject/xake",
   "files": [
