@@ -7,7 +7,7 @@
       "to": "/usr/bin",
       "base": "build/!arch!",
       "fperm": "0755"
-    },
+    }
   ],
   "copyrights": [
     {
