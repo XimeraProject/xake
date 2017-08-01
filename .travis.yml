@@ -43,3 +43,5 @@ deploy:
   dist: "ubuntu/trusty"
   local-dir: build
   package_glob: "*.deb"
+  on:
+    tags: true
