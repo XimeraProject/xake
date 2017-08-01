@@ -22,5 +22,5 @@
   "depends": [
     "libc6"
   ],
-  "description": "convert .tex files into .html files",
+  "description": "convert .tex files into .html files"
 }
