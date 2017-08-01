@@ -30,6 +30,7 @@ install:
 - go get -tags static .
 
 script: echo "pass"
+
 before_deploy:
 - mkdir -p build/amd64
 - GOOS=linux GOARCH=amd64 go build -tags static -o build/amd64/xake .
@@ -37,6 +38,9 @@ before_deploy:
 - go get -u github.com/mh-cbon/go-bin-rpm
 - $GOPATH/bin/go-bin-deb generate -a amd64 --version ${TRAVIS_TAG/v/} -w $(mktemp -d) -o $GOPATH/src/github.com/XimeraProject/xake/build/xake-amd64.deb
 - $GOPATH/bin/go-bin-rpm generate -a amd64 --version ${TRAVIS_TAG/v/} -o $GOPATH/src/github.com/XimeraProject/xake/build/xake-amd64.rpm
+
+after_deploy:
+- echo "pass"
 
 deploy:
   - provider: packagecloud
@@ -55,7 +59,7 @@ deploy:
     username: kisonecat
     token:
       secure: "XSIz1Jo4GOIvSSZyGedJtlxRmWggrC0Fpd6InrCpwMTuWpi415/9jWHG/QZ5Ablp/Zt6YF0uMf5WJsccvBRGLmmZsDO3Ycu+dw+trbpeGkOKlHrzCNX50t/FeFHL2/j5mKPmGB1Z3x7qQrlk2G5kdFPrMs1LB/pjnQdTTKjfLhTkq8j/webyjfQYR7YQ4gWMtYFxUfVLtoMf/YFJnP4089yO7LipPqSTDpxaCbZXmU75/2gZKMsmS21zW6Z6wpxBw8VN+8aoiIvzUcbB8CrE5gWTclVFklcEy5FGy5R5eqbj/1H4NYk23PTOKRTopxOTTZJkMpC9Hq3Htqc1xbziXmUS4yMSIHjizkppMVhtOyndrnBdDTycDAEBFihwW69JtHFUmhUcdGgUxHeRxU0r3WFxUC/xnoPZXnN8RllpPepmdeMcMMOkJW1MrkM88R0T45n7s+ZE/tbZXd7Ilal9gwaYqBsIY63uQgNGimfcNH8Nz6LUh043ydFElbaHBhQaVX4XcHfYBvU/XiSK5JEtz/9/MFVIvnn+oFnzEAJYe+JLUknUxjd6qVkhJRZ5TU1fciZ7D7pGkQJ2SoGPQQsRB66dYN2GaIaBXar4ZJB+KU5oAmfEv5cWc78GVwG52Lj3qnGeKU9QHSZlgvMw+aevbN1LSK1VG1zkt6xGrhXNMmg="
-    dist: "centos/5"
+    dist: "el/5"
     local-dir: build
     skip_cleanup: true
     package_glob: "*.rpm"
