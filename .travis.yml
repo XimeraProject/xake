@@ -10,6 +10,7 @@ before_install:
 - echo do not bother with sudo apt-get install libssh2-1-dev
 - echo and do not bother with sudo apt-get install libhttp-parser-dev
 - sudo apt-get install fakeroot
+- sudo apt-get install upx
 - sudo apt-get install rpm
 - mkdir -p ${GOPATH}/bin
 install:
@@ -24,15 +25,16 @@ install:
 script: echo "pass"
 before_deploy:
 - mkdir -p build/amd64
-- GOOS=linux GOARCH=amd64 go build -tags static -o build/amd64/xake .
+- GOOS=linux GOARCH=amd64 go build -tags static -ldflags="-s -w" -o build/amd64/xake .
+- upx build/amd64/xake
 - go get -u github.com/mh-cbon/go-bin-deb
 - go get -u github.com/mh-cbon/go-bin-rpm
 - "$GOPATH/bin/go-bin-deb generate -a amd64 --version ${TRAVIS_TAG/v/} -w $(mktemp -d) -o $GOPATH/src/github.com/XimeraProject/xake/build/xake_${TRAVIS_TAG/v/}_amd64.deb"
 - "$GOPATH/bin/go-bin-rpm generate -a amd64 --version ${TRAVIS_TAG/v/} -o $GOPATH/src/github.com/XimeraProject/xake/build/xake-${TRAVIS_TAG/v/}.x86_64.rpm"
 - mkdir -p usr/bin
 - cp build/amd64/xake usr/bin/xake
-- tar -cvf xake.tar usr/bin/xake
-- gzip -9 xake.tar
+- tar -cvf build/xake.tar usr/bin/xake
+- gzip -9 build/xake.tar
 
 after_deploy:
 - echo "pass"
@@ -46,6 +48,6 @@ deploy:
   file:
     - "build/*.rpm"
     - "build/*.deb"
-    - "xake.tar.gz"
+    - "build/*.tar.gz"
   on:
     tags: true
