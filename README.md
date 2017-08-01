@@ -78,6 +78,30 @@ also performs a `git push` to send the commit to the server.
 
 # Installing xake
 
+## On Arch
+
+The AUR contains [xake-git](https://aur.archlinux.org/packages/xake-git/) which will install the latest version of xake.  Therefore
+```
+yaourt -S xake-git
+```
+should suffice if you use yaourt.
+
+## On Ubuntu and Debian
+
+Download the `.deb` from the [releases link above](https://github.com/XimeraProject/xake/releases).  Then install it with
+```
+sudo dpkg -i xake_0.8.20_amd64.deb
+```
+
+## On Redhat and CentOS
+
+Download the `.rpm` from the [releases link above](https://github.com/XimeraProject/xake/releases).  Then install it with
+```
+sudo rpm -i xake-0.8.20.x86_64.rpm
+```
+
+## From source
+
 ```
 mkdir -p ~/go/src/github.com/ximeraproject
 export GOPATH=$HOME/go
@@ -88,4 +112,3 @@ go get .
 go build .
 
 ```
-1
