@@ -46,5 +46,5 @@ To share your signed public key with Ximera, use the command
 At that point, `xake --key YOUR-GPG-KEY-ID name reponame` will create
 the remote repository `https://ximera.osu.edu/reponame.git` and you
 will then be able to `git push ximera master` to store your work on
-ximera.osu.edu.
+ximera.osu.edu. The name of your repository should contain only alphanumeric characters for now.
 
