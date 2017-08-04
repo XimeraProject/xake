@@ -15,6 +15,7 @@ func Name(name string) error {
 
 	token, err := GetRepositoryToken(name)
 	if err != nil {
+		s.Stop()
 		log.Error(err)
 		return err
 	}

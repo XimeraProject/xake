@@ -51,6 +51,15 @@ func requestToken(keyId string) (string, error) {
 
 	defer response.Body.Close()
 
+	if response.StatusCode != 200 {
+		bodyBytes, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return "", err
+		}
+		bodyString := string(bodyBytes)
+		return "", errors.New(bodyString)
+	}
+
 	challenge, err := Decrypt(response.Body)
 	if err != nil {
 		return "", errors.New("Could not decrypt the challenge at " + url)
