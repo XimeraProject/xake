@@ -68,6 +68,33 @@ func requestToken(keyId string) (string, error) {
 	return challenge, nil
 }
 
+func RequestLtiSecret(keyId string, ltiKey string) (string, error) {
+	log.Debug("Using GPG key with fingerprint " + keyId)
+	url := endpoint("/gpg/secret/" + ltiKey + "/" + keyId)
+	response, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		bodyBytes, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return "", err
+		}
+		bodyString := string(bodyBytes)
+		return "", errors.New(bodyString)
+	}
+
+	challenge, err := Decrypt(response.Body)
+	if err != nil {
+		return "", errors.New("Could not decrypt the secret at " + url)
+	}
+
+	return challenge, nil
+}
+
 func saveToken() (err error) {
 	log.Debug("Saving token using fingerprint " + keyFingerprint)
 	apiToken, err = requestToken(keyFingerprint)

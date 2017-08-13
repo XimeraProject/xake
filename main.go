@@ -150,6 +150,27 @@ func main() {
 				return nil
 			},
 		},
+
+		{
+			Name:    "lti",
+			Aliases: []string{"l"},
+			Usage:   "fetch credentials for an LTI connection",
+			Action: func(c *cli.Context) error {
+				ltiKey := c.Args().Get(0)
+				ltiSecret, err := RequestLtiSecret(keyFingerprint, ltiKey)
+
+				if err != nil {
+					log.Error(err)
+					return err
+				}
+
+				fmt.Printf("LTI key: %s\n", ltiKey)
+				fmt.Printf(" secret: %s\n", ltiSecret)
+
+				return nil
+			},
+		},
+
 		{
 			Name:    "bake",
 			Aliases: []string{"b"},
