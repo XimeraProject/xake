@@ -593,7 +593,16 @@ func readXourseHtmlMetadata(htmlFilename string) (map[string]string, error) {
 	title := doc.Find("title").Contents().Text()
 	results["title"] = title
 
-	// BADBAD: should also grab an xourse icon, a priority, etc.
+	doc.Find("meta[name=\"og:image\"]").Each(func(i int, s *goquery.Selection) {
+		content, exists := s.Attr("content")
+		if exists {
+			if len(content) > 0 {
+				results["logo"] = content
+			}
+		}
+	})
+
+	// BADBAD: should also grab a priority, etc.
 
 	return results, nil
 }
