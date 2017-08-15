@@ -602,6 +602,22 @@ func readXourseHtmlMetadata(htmlFilename string) (map[string]string, error) {
 		}
 	})
 
+	doc.Find("meta[name=\"author\"]").Each(func(i int, s *goquery.Selection) {
+		content, exists := s.Attr("content")
+		if exists {
+			if len(content) > 0 {
+				results["author"] = content
+			}
+		}
+	})
+
+	abstract, err := doc.Find("div.abstract").Html()
+	if err == nil {
+		if len(abstract) > 0 {
+			results["abstract"] = abstract
+		}
+	}
+
 	// BADBAD: should also grab a priority, etc.
 
 	return results, nil
