@@ -33,7 +33,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.8.24"
+	app.Version = "0.8.25"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"
@@ -132,7 +132,12 @@ func main() {
 			Aliases: []string{"k"},
 			Usage:   "remove built files from the working tree",
 			Action: func(c *cli.Context) error {
-				err := RemoveBuiltFiles()
+				pathname := ""
+				if len(c.Args()) > 0 {
+					pathname = c.Args().Get(0)
+				}
+
+				err := RemoveBuiltFiles(pathname)
 				if err != nil {
 					log.Error(err)
 				}

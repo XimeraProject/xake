@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"gopkg.in/cheggaaa/pb.v1"
 	"os"
 	"path/filepath"
@@ -41,7 +42,22 @@ func isDeletable(path string) bool {
 	return stringInSlice(filepath.Ext(path), deletableExtensions)
 }
 
-func RemoveBuiltFiles() error {
+func RemoveBuiltFiles(pathname string) error {
+
+	if pathname == "" {
+		pathname = repository
+	} else {
+		pathname, err := filepath.Abs(pathname)
+		if err != nil {
+			return err
+		}
+
+		// This is unfortunately a deprecated function, but I don't
+		// know what the alternative is
+		if !(filepath.HasPrefix(pathname, repository)) {
+			return errors.New("The path to clean is not under the current repository.")
+		}
+	}
 
 	filenames, err := TexFilesInRepository(repository)
 
@@ -72,7 +88,7 @@ func RemoveBuiltFiles() error {
 		return nil
 	}
 
-	err = filepath.Walk(repository, visit)
+	err = filepath.Walk(pathname, visit)
 	if err != nil {
 		return err
 	}
@@ -90,7 +106,7 @@ func RemoveBuiltFiles() error {
 		bar.Increment()
 	}
 
-	bar.FinishPrint("Cleaned your working tree.")
+	bar.FinishPrint("Cleaned " + pathname)
 
 	return nil
 }
