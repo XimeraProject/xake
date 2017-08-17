@@ -24,6 +24,8 @@ var deletableExtensions = []string{
 	".dvi",
 	".pdf",
 	".html",
+	".dpth",
+	".ids",
 }
 
 func stringInSlice(a string, list []string) bool {
