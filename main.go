@@ -208,7 +208,7 @@ COPYRIGHT:
 		{
 			Name: "bake",
 			// I have so much trouble typing this word
-			Aliases: []string{"b", "beak", "beka", "bkae", "bkea", "eabk", "eakb", "ebak", "ebka", "ekab", "ekba", "kabe", "kaeb", "kbae", "kbea", "keab", "keba"},
+			Aliases: []string{"b", "abke", "beak", "beka", "bkae", "bkea", "eabk", "eakb", "ebak", "ebka", "ekab", "ekba", "kabe", "kaeb", "kbae", "kbea", "keab", "keba"},
 			Usage:   "compile all the files in the repository",
 			Action: func(c *cli.Context) error {
 				return Bake(workers)
