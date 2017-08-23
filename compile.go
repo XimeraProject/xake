@@ -229,17 +229,10 @@ func Compile(directory string, filename string) ([]byte, error) {
 		return output, err
 	}
 
-	log.Debug("Running pdflatex again for " + filename)
-	output, err = pdflatex(filename)
-	if err != nil {
-		log.Error(string(output))
-		return output, err
-	}
-
 	sagetexFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".sagetex.sage"
 	if _, err := os.Stat(sagetexFilename); !os.IsNotExist(err) {
 		log.Debug("Running sage for " + filename)
-		sage(filename)
+		sage(sagetexFilename)
 	}
 
 	log.Debug("Running pdflatex again for " + filename)
