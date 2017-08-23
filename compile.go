@@ -229,7 +229,7 @@ func Compile(directory string, filename string) ([]byte, error) {
 		return output, err
 	}
 
-	sagetexFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".sagetex"
+	sagetexFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".sagetex.sage"
 	if _, err := os.Stat(sagetexFilename); !os.IsNotExist(err) {
 		log.Debug("Running sage for " + filename)
 		sage(filename)
