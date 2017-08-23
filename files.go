@@ -107,6 +107,11 @@ func IsClean(repositoryPath string, filename string) (bool, error) {
 		return false, err
 	}
 
+	// BADBAD: Just ignore symbolic links
+	if entry.Filemode == git.FilemodeLink {
+		return true, nil
+	}
+
 	sha := entry.Id.String()
 
 	hash, err := HashObject(filepath.Join(repositoryPath, filename))
@@ -266,15 +271,17 @@ func DisplayErrorsAboutUncommittedTexFiles(directory string) (result error) {
 		}
 
 		if passed {
-			committed, _ := IsInRepository(directory, path)
+			committed, err := IsInRepository(directory, path)
 			if committed {
-				clean, _ := IsClean(directory, path)
+				clean, err := IsClean(directory, path)
 
 				if !clean {
+					log.Error(err)
 					log.Error(path + " is not committed to the repository")
 					result = errors.New("Some source files are not committed to the repository")
 				}
 			} else {
+				log.Error(err)
 				log.Error(path + " is not committed to the repository")
 				result = errors.New("Some source files are not committed to the repository")
 			}
