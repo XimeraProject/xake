@@ -27,6 +27,10 @@ var deletableExtensions = []string{
 	".html",
 	".dpth",
 	".ids",
+	".sagetex.sage",
+	".sagetex.scmd",
+	".sagetex.sage.py",
+	".sagetex.sout",
 }
 
 func stringInSlice(a string, list []string) bool {
