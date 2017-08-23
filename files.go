@@ -271,17 +271,15 @@ func DisplayErrorsAboutUncommittedTexFiles(directory string) (result error) {
 		}
 
 		if passed {
-			committed, err := IsInRepository(directory, path)
+			committed, _ := IsInRepository(directory, path)
 			if committed {
-				clean, err := IsClean(directory, path)
+				clean, _ := IsClean(directory, path)
 
 				if !clean {
-					log.Error(err)
-					log.Error(path + " is not committed to the repository")
+					log.Error(path + " differs from what was committed to the repository")
 					result = errors.New("Some source files are not committed to the repository")
 				}
 			} else {
-				log.Error(err)
 				log.Error(path + " is not committed to the repository")
 				result = errors.New("Some source files are not committed to the repository")
 			}
