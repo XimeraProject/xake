@@ -26,6 +26,8 @@ var extensions = []string{
 	"auxlock",
 	"dvi",
 	"pdf",
+	"scmd",
+	"sout",
 }
 
 func clean(filename string) {
