@@ -247,6 +247,19 @@ COPYRIGHT:
 		},
 
 		{
+			Name:    "chat",
+			Aliases: []string{"c"},
+			Usage:   "run a chat server",
+			Action: func(c *cli.Context) error {
+				err := Chat()
+				if err != nil {
+					log.Error(err)
+				}
+				return err
+			},
+		},
+
+		{
 			Name:    "data",
 			Aliases: []string{"t"},
 			Usage:   "operate on the learning record store",
