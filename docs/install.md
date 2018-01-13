@@ -26,7 +26,7 @@ sudo rpm -i xake-0.8.20.x86_64.rpm
 
 ## Install from source
 
-If you would rather compile xake yourself, the following should work.
+If you would rather compile xake yourself, the following may work.
 ```
 mkdir -p ~/go/src/github.com/ximeraproject
 export GOPATH=$HOME/go
@@ -37,3 +37,21 @@ go get .
 go build .
 
 ```
+
+That may not work, though, depending on your version of libgit2.  To build libgit2 statically, you could instead follow the following recipe:
+```
+export GOPATH=$HOME/go
+export PKG_CONFIG_PATH=$HOME/go/src/github.com/libgit2/git2go/vendor/libgit2/build
+export CGO_CFLAGS=-I$HOME/go/src/github.com/libgit2/git2go/vendor/libgit2/include
+mkdir -p ~/go/src/github.com/ximeraproject
+cd ~/go/src/github.com/ximeraproject
+git clone https://github.com/XimeraProject/xake.git
+go get -d github.com/libgit2/git2go
+cd ~/go/src/github.com/libgit2/git2go
+git submodule update --init
+make install-static
+cd ~/go/src/github.com/ximeraproject/xake
+go get -tags static .
+```
+
+Then in the directory `~/go/bin` you should find a `xake` binary.
