@@ -347,13 +347,14 @@ func FilesInRepository(directory string, condition func(string) (bool, error)) (
 func IsTexUpToDate(inputFilename string, outputFilename string) (bool, error) {
 	f, err := os.Open(outputFilename)
 	defer f.Close()
+
 	if err != nil {
-		return false, nil
+		return IsUpToDateBasedOnTime(inputFilename, outputFilename)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(f)
 	if err != nil {
-		return false, nil
+		return IsUpToDateBasedOnTime(inputFilename, outputFilename)
 	}
 
 	clean := true
