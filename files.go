@@ -357,6 +357,7 @@ func IsTexUpToDate(inputFilename string, outputFilename string) (bool, error) {
 	}
 
 	clean := true
+	anyDependencies := false
 
 	doc.Find("meta[name=\"dependency\"]").Each(func(i int, s *goquery.Selection) {
 		content, exists := s.Attr("content")
@@ -379,6 +380,8 @@ func IsTexUpToDate(inputFilename string, outputFilename string) (bool, error) {
 				return
 			}
 
+			anyDependencies = true
+
 			h := sha1.New()
 			if _, err := io.Copy(h, f); err == nil {
 				trueHash := fmt.Sprintf("%x", h.Sum(nil))
@@ -391,14 +394,14 @@ func IsTexUpToDate(inputFilename string, outputFilename string) (bool, error) {
 		}
 	})
 
+	if anyDependencies == false {
+		return IsUpToDateBasedOnTime(inputFilename, outputFilename)
+	}
+
 	return clean, nil
 }
 
-func IsUpToDate(inputFilename string, outputFilename string) (bool, error) {
-	if filepath.Ext(inputFilename) == ".tex" {
-		return IsTexUpToDate(inputFilename, outputFilename)
-	}
-
+func IsUpToDateBasedOnTime(inputFilename string, outputFilename string) (bool, error) {
 	inputInfo, err := os.Stat(inputFilename)
 	// nonexistent files are viewed as having a very old modification time
 	inputTime := time.Unix(0, 0)
@@ -417,6 +420,14 @@ func IsUpToDate(inputFilename string, outputFilename string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func IsUpToDate(inputFilename string, outputFilename string) (bool, error) {
+	if filepath.Ext(inputFilename) == ".tex" {
+		return IsTexUpToDate(inputFilename, outputFilename)
+	}
+
+	return IsUpToDateBasedOnTime(inputFilename, outputFilename)
 }
 
 func TexFilesInRepository(directory string) ([]string, error) {
