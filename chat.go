@@ -36,14 +36,18 @@ func Chat() error {
 		return err
 	}
 
-	port, err := strconv.Atoi(u.Port())
-	if err != nil {
-		port = 80
-	}
-
 	secure := false
 	if u.Scheme == "https" {
 		secure = true
+	}
+
+	port, err := strconv.Atoi(u.Port())
+	if err != nil {
+		if secure {
+			port = 443
+		} else {
+			port = 80
+		}
 	}
 
 	c, err := gosocketio.Dial(
@@ -140,7 +144,6 @@ func handleClient(conn net.Conn, incoming chan Payload, outgoing chan Payload) e
 			}
 
 			if message.Command == "NICK" {
-				fmt.Println(message)
 				nick = message.Params[0]
 
 				enc.Encode(&irc.Message{
@@ -158,7 +161,7 @@ func handleClient(conn net.Conn, incoming chan Payload, outgoing chan Payload) e
 				enc.Encode(&irc.Message{
 					Prefix:  &irc.Prefix{Name: nick, User: nick, Host: "localhost"},
 					Command: irc.RPL_ENDOFMOTD,
-					Params:  []string{" ready?"}})
+					Params:  []string{"-", "ready."}})
 
 				continue
 			}

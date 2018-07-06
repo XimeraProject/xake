@@ -344,7 +344,61 @@ func FilesInRepository(directory string, condition func(string) (bool, error)) (
 	return files, nil
 }
 
+func IsTexUpToDate(inputFilename string, outputFilename string) (bool, error) {
+	f, err := os.Open(outputFilename)
+	defer f.Close()
+	if err != nil {
+		return false, nil
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		return false, nil
+	}
+
+	clean := true
+
+	doc.Find("meta[name=\"dependency\"]").Each(func(i int, s *goquery.Selection) {
+		content, exists := s.Attr("content")
+
+		if !exists {
+			log.Warn(outputFilename + " is missing a content attribute on its meta[name=\"dependency\"]")
+			return
+		}
+
+		fields := strings.Fields(content)
+
+		if len(fields) > 1 {
+			oldHash := fields[0]
+			dependency := strings.TrimPrefix(content, oldHash+" ")
+
+			f, err := os.Open(dependency)
+			defer f.Close()
+
+			if err != nil {
+				return
+			}
+
+			h := sha1.New()
+			if _, err := io.Copy(h, f); err == nil {
+				trueHash := fmt.Sprintf("%x", h.Sum(nil))
+
+				if trueHash != oldHash {
+					log.Debug(inputFilename + " not up to date because " + dependency + " changed")
+					clean = false
+				}
+			}
+		}
+	})
+
+	return clean, nil
+}
+
 func IsUpToDate(inputFilename string, outputFilename string) (bool, error) {
+	if filepath.Ext(inputFilename) == ".tex" {
+		return IsTexUpToDate(inputFilename, outputFilename)
+	}
+
 	inputInfo, err := os.Stat(inputFilename)
 	// nonexistent files are viewed as having a very old modification time
 	inputTime := time.Unix(0, 0)

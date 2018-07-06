@@ -1,7 +1,10 @@
 package main
 
 import (
+	"crypto/sha1"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -194,11 +197,52 @@ func transformHtml(directory string, filename string) error {
 		}
 	})
 
+	log.Debug("Remove empty paragraphs of the form <p></p>")
+	doc.Find("p:empty").Each(func(i int, s *goquery.Selection) {
+		s.Remove()
+	})
+
+	log.Debug("Add <meta> tags for all dependencies")
+	doc.Find("head").Each(func(_ int, s *goquery.Selection) {
+		dependencies, err := LatexDependencies(filename)
+		if err == nil {
+			absoluteFilename, err := filepath.Abs(filepath.Join(directory, filename))
+			if err == nil {
+				dependencies = append(dependencies, absoluteFilename)
+			}
+
+			absoluteRoot, err := filepath.Abs(directory)
+			if err != nil {
+				return
+			}
+
+			for _, dependency := range dependencies {
+				dependency, err := filepath.Rel(absoluteRoot, dependency)
+
+				if err != nil {
+					continue
+				}
+
+				f, err := os.Open(dependency)
+				defer f.Close()
+
+				if err != nil {
+					continue
+				}
+
+				h := sha1.New()
+				if _, err := io.Copy(h, f); err == nil {
+					hash := fmt.Sprintf("%x", h.Sum(nil))
+					s.AppendHtml("<meta name=\"dependency\" content=\"" +
+						hash + " " +
+						dependency + "\">")
+				}
+			}
+		}
+	})
+
 	if xourseFile {
 		transformXourse(directory, filename, doc)
-	} else {
-		// BADBAD: we can just return here, because we don't have to transform activities -- only xourses.
-		return nil
 	}
 
 	html, err := doc.Html()
