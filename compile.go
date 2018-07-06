@@ -206,18 +206,11 @@ func transformHtml(directory string, filename string) error {
 	doc.Find("head").Each(func(_ int, s *goquery.Selection) {
 		dependencies, err := LatexDependencies(filename)
 		if err == nil {
-			absoluteFilename, err := filepath.Abs(filepath.Join(directory, filename))
-			if err == nil {
-				dependencies = append(dependencies, absoluteFilename)
-			}
-
-			absoluteRoot, err := filepath.Abs(directory)
-			if err != nil {
-				return
-			}
+			// BADBAD: this does the wrong thing with xake compile
+			dependencies = append(dependencies, filename)
 
 			for _, dependency := range dependencies {
-				dependency, err := filepath.Rel(absoluteRoot, dependency)
+				dependency, err := filepath.Rel(directory, dependency)
 
 				if err != nil {
 					continue

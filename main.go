@@ -33,7 +33,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.8.31"
+	app.Version = "0.9.1"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"
@@ -239,6 +239,19 @@ COPYRIGHT:
 			Usage:   "push the publication tag to the server",
 			Action: func(c *cli.Context) error {
 				err := Serve()
+				if err != nil {
+					log.Error(err)
+				}
+				return err
+			},
+		},
+
+		{
+			Name:    "pull",
+			Aliases: []string{"p"},
+			Usage:   "pull published content from the server",
+			Action: func(c *cli.Context) error {
+				err := ServePull()
 				if err != nil {
 					log.Error(err)
 				}
