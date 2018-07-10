@@ -141,8 +141,15 @@ func processEvents(process func(string) error) error {
 }
 
 func DumpEventsAsJSON() error {
+	firstTime := true
 	dump := func(payload string) error {
-		fmt.Printf("%s,\n", string(payload))
+		if firstTime {
+			firstTime = false
+			fmt.Printf(" ")
+		} else {
+			fmt.Printf(",")
+		}
+		fmt.Printf("%s\n", string(payload))
 		return nil
 	}
 
