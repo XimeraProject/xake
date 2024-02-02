@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"net/http"
 	"os/exec"
 	"path/filepath"

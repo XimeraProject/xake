@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/fatih/color"
-	prefixed "github.com/kisonecat/logrus-prefixed-formatter"
-	"github.com/sirupsen/logrus"
+	// prefixed "github.com/kisonecat/logrus-prefixed-formatter"
+	prefixed "github.com/AVENTER-UG/go-logrus-formatter"
+	logrus "github.com/sirupsen/logrus"
 	//"github.com/tcnksm/go-latest"
 	"github.com/urfave/cli"
 	"net/url"

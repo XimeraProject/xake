@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"gopkg.in/sorcix/irc.v2"
 	"net"
 	"net/url"

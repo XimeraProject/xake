@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"io/ioutil"
 	"os"
 	"path/filepath"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/fatih/color"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"net/url"
 	"os"
 	"os/exec"

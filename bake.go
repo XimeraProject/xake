@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
+	logrus "github.com/sirupsen/logrus"
 	"gopkg.in/cheggaaa/pb.v1"
 	"os"
 	"sync"
