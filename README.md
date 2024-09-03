@@ -1,4 +1,30 @@
+
 # Xake
+
+## Docker
+- Builden: `docker build . -f Dockerfile -t set-registry.repo.icts.kuleuven.be/dsb/xake:latest`
+- Updaten in docker-registry: `docker push set-registry.repo.icts.kuleuven.be/dsb/xake:latest`
+- Runnen: `docker run --rm -v <absoluut_pad_zomercursus_repo>:/code set-registry.repo.icts.kuleuven.be/dsb/xake:latest xake -v`
+- Runnen via bat file: 
+    - Je kan rechtstreeks `xake compile` etc uitvoeren
+    - Maak `xake.bat` file met volgende inhoud:
+>>>
+    @echo off    
+    docker run --rm -v %cd%:/code set-registry.repo.icts.kuleuven.be/dsb/xake:latest xake -v %*
+>>>
+
+## Changelog 1/2023, v1.3.0: rework Dockerfile
+- previous version did not compile (go version issues)
+- include golang build into final image (so that hopefully minor further re-compiles might be possible INSIDE that image ...)
+- use texlive-full prom debian packages  (might not be very fortunate ...)
+- get rid of sage for now (image is already huge; did not work anyway)
+
+## Nieuwe versie maken
+Zie [readme van Ximera-server](https://gitlab.mech.kuleuven.be/monitoraat-wet/Ximera-server#nieuwe-versie-online-zetten)
+Dbm kan gebruikt worden of handmatig.
+Na het pushen, moet de `.gitlab-ci` file worden gewijzigd om de nieuwste versie te gebruiken.
+
+## Uitleg originele repo
 
 [![Tag](https://img.shields.io/github/tag/XimeraProject/xake.svg?style=flat-square)](https://github.com/XimeraProject/xake/tags)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue.svg?style=flat-square)](https://github.com/XimeraProject/xake/blob/master/LICENSE.md)

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/fatih/color"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"net/url"
 	"os"
 	"os/exec"
@@ -21,7 +21,7 @@ func gitPushXimera(ref string) error {
 	}
 
 	yellow := color.New(color.FgYellow)
-	yellow.Println("git " + strings.Join(args, " "))
+	yellow.Println("Starting git " + strings.Join(args, " "))
 
 	command := exec.Command("git", args...)
 	command.Stdout = os.Stdout
@@ -107,6 +107,23 @@ func gitCheckout(ref string) error {
 	return command.Wait()
 }
 
+func gitBranch(ref string) (string, error) {
+	args := []string{"rev-parse", "--abbrev-ref", "HEAD"}
+
+	yellow := color.New(color.FgYellow)
+	yellow.Println("git " + strings.Join(args, " "))
+
+	myout,err := exec.Command("git", args...).CombinedOutput()
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
+
+	log.Debug("gitBranch returns  " + strings.TrimSuffix(string(myout),"\n"))
+
+	return strings.TrimSuffix(string(myout),"\n"),err
+}
+
 func Serve() error {
 	log.Debug("Opening repository " + repository)
 	repo, err := git.OpenRepository(repository)
@@ -135,11 +152,21 @@ func Serve() error {
 		return err
 	}
 
-	err = gitPushXimera("")
+	branch, err := gitBranch("")
 	if err != nil {
+		log.Error("I could not determine the current branch.")
 		return err
 	}
 
+
+	log.Debug("Pushing ximera ")
+	err = gitPushXimera(branch+":master")
+	if err != nil {
+		log.Error("I could not git push ximera"+branch+":master ...")
+		return err
+	}
+
+	log.Debug("Pushing ximera "+tagName)
 	err = gitPushXimera(tagName)
 	if err != nil {
 		return nil

@@ -1,12 +1,12 @@
 package main
 
 import (
+    "github.com/wiobber/logrus-prefixed-formatter"
 	"fmt"
 	"github.com/fatih/color"
-	prefixed "github.com/kisonecat/logrus-prefixed-formatter"
 	"github.com/sirupsen/logrus"
 	//"github.com/tcnksm/go-latest"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 	"net/url"
 	"os"
 	"sort"
@@ -17,11 +17,12 @@ var log = logrus.New()
 var repository string
 var keyFingerprint string
 var ximeraUrl *url.URL
+var skipMathJaxCheck bool
 var workers int
 
 func init() {
 	formatter := new(prefixed.TextFormatter)
-	formatter.DisableTimestamp = true
+	formatter.DisableTimestamp = false
 	formatter.DisableUppercase = true
 	log.Formatter = formatter
 }
@@ -32,8 +33,8 @@ func main() {
 	app := cli.NewApp()
 
 	app.Name = "xake"
-	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.9.4"
+	app.Usage = "a build tool (make) for Ximera (as adapted at KU Leuven)"
+	app.Version = "2.1.1"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"
@@ -138,6 +139,10 @@ COPYRIGHT:
 			Value: "https://ximera.osu.edu/",
 			Usage: "Use the Ximera server hosted at `URL`",
 		},
+		cli.BoolFlag{
+			Name:  "skip-mathjax, s",
+			Usage: "Skip the mathjax check after compiling",
+		},
 	}
 
 	app.Commands = []cli.Command{
@@ -150,7 +155,25 @@ COPYRIGHT:
 				log.Info("Compiling " + filename + " in .")
 				_, err := Compile(".", filename)
 				if err != nil {
+					log.Debug(err)
 					log.Error("Could not compile " + filename)
+					os.Exit(1)
+				}
+				return nil
+			},
+		},
+		{
+			Name:    "compilePdf",
+			Usage:   "compile a .tex file into an .pdf file",
+			Action: func(c *cli.Context) error {
+				filename := c.Args().Get(0)
+				suffix := c.Args().Get(1)
+				if suffix != "" { suffix = "-"+suffix }    // allow for empty suffix
+				extraInput := c.Args().Get(2)
+				log.Info("Compiling pdf for " + filename + " in .")
+				_, err := CompilePdf(filename, suffix, extraInput)
+				if err != nil {
+					log.Error("Could not compile " + filename + " to pdf")
 					os.Exit(1)
 				}
 				return nil
@@ -204,14 +227,37 @@ COPYRIGHT:
 				return nil
 			},
 		},
-
 		{
 			Name: "bake",
 			// I have so much trouble typing this word
 			Aliases: []string{"b", "abke", "beak", "beka", "bkae", "bkea", "eabk", "eakb", "ebak", "ebka", "ekab", "ekba", "kabe", "kaeb", "kbae", "kbea", "keab", "keba"},
 			Usage:   "compile all the files in the repository",
 			Action: func(c *cli.Context) error {
-				return Bake(workers)
+				compilationChecker := func(repository string) ([]string, map[string][]string, error) {
+					return NeedingCompilation(repository, ".html")
+				}
+				compiler := func(repository string, task string) ([]byte, error) {
+					return Compile(repository, task)
+				}
+				return Bake(workers, compilationChecker, compiler)
+			},
+		},
+		{
+			Name: "bakePdf",
+			Usage:   "compile all the files in the repository to pdf files",
+			Action: func(c *cli.Context) error {
+				suffix := c.Args().Get(0)
+				if suffix != "" { suffix = "-"+suffix }    // allow for empty suffix
+				extraInput := c.Args().Get(1)
+
+				totalSuffix := suffix + ".pdf"
+				compilationChecker := func(repository string) ([]string, map[string][]string, error) {
+					return NeedingCompilation(repository, totalSuffix)
+				}
+				compiler := func(repository string, task string) ([]byte, error) {
+					return CompilePdf(task, suffix, extraInput)
+				}
+				return Bake(workers, compilationChecker, compiler)
 			},
 		},
 		{
@@ -329,7 +375,7 @@ COPYRIGHT:
 			Aliases: []string{"i", "info"},
 			Usage:   "display information about the repository",
 			Action: func(c *cli.Context) error {
-				files, _, err := NeedingCompilation(repository)
+				files, _, err := NeedingCompilation(repository, ".html")
 				if err != nil {
 					log.Error(err)
 					return err
@@ -349,6 +395,12 @@ COPYRIGHT:
 
 		if c.Bool("verbose") {
 			log.Level = logrus.DebugLevel
+		}
+
+		if c.Bool("skip-mathjax") {
+			skipMathJaxCheck = true
+		} else {
+			skipMathJaxCheck = false
 		}
 
 		workers = c.Int("jobs")
@@ -394,8 +446,10 @@ COPYRIGHT:
 			}
 			group.Done()
 		}()
+		
 
 		// Check to see if the version of ximeraLatex is good
+		if c.Bool("checkXimeraVersion") {		
 		go func() {
 			group.Add(1)
 			err := CheckXimeraVersion()
@@ -404,6 +458,7 @@ COPYRIGHT:
 			}
 			group.Done()
 		}()
+		}
 
 		//dependencies, _ := LatexDependencies("sample.tex")
 		//b, err := IsClean("/home/jim/ximeraSample", "/home/jim/ximeraSample/sample.tex")

@@ -2,24 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/briandowns/spinner"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"net/url"
-	"time"
+	"os"
 )
 
 func Name(name string) error {
-	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
-	s.Prefix = fmt.Sprintf("Getting bearer token for '%s'... ", name)
-	s.Start()
+	fmt.Sprintf("Getting bearer token for '%s'... ", name)
 
 	token, err := GetRepositoryToken(name)
 	if err != nil {
-		s.Stop()
 		log.Error(err)
+		os.Exit(1)
 		return err
 	}
-	s.Stop()
 	fmt.Printf("Received bearer token for '%s'\n", name)
 
 	fmt.Printf("Token is '%s'\n", token)
@@ -28,16 +24,22 @@ func Name(name string) error {
 	log.Debug("Opening repository " + repository)
 	repo, err := git.OpenRepository(repository)
 	if err != nil {
+		log.Error(err)
+		os.Exit(1)
 		return err
 	}
 
 	config, err := repo.Config()
 	if err != nil {
+		log.Error(err)
+		os.Exit(1)
 		return err
 	}
 
 	err = config.SetString("http."+ximeraUrl.String()+".extraHeader", "Authorization: Bearer "+token)
 	if err != nil {
+		log.Error(err)
+		os.Exit(1)
 		return err
 	}
 

@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -124,6 +124,20 @@ func Frost(xakeVersion string) error {
 		}
 
 		log.Debug("git add " + filename)
+		err = index.AddByPath(relativePath)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Debug("Adding ximera-downloads...")
+	downloads, err := XimeraDownloadFilesInRepository(repository)
+	for _, download := range downloads {
+		relativePath, err := filepath.Rel(repository, download)	
+		if err != nil {
+			return err
+		}
+		log.Debug("git add " + download)
 		err = index.AddByPath(relativePath)
 		if err != nil {
 			return err

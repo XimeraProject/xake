@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"github.com/stevenle/topsort"
 	"io"
 	"io/ioutil"
@@ -20,6 +20,19 @@ import (
 /* IsTexDocument reads filename, checks for .tex extension and looks
 /* for \begin{document}. */
 func IsTexDocument(path string) (bool, error) {
+	/* exclude tex-files that can not or should not be htlatex'ed */
+	if bool_pdf, _ := regexp.MatchString("\\_pdf.tex$", path); bool_pdf {
+		return false, nil
+	}
+
+	if bool_pdf, _ := regexp.MatchString("\\_beamer.tex$", path); bool_pdf {
+		return false, nil
+	}
+
+	if bool_pdf, _ := regexp.MatchString("\\_beamer_handout.tex$", path); bool_pdf {
+		return false, nil
+	}
+
 	if bool, _ := regexp.MatchString("\\.tex$", path); !bool {
 		return false, nil
 	}
@@ -45,6 +58,11 @@ func IsTexDocument(path string) (bool, error) {
 	}
 
 	return bool, nil
+}
+
+/* IsXimeraDownloadsDocument reads filename, checks for ximera-downloads/ */
+func IsXimeraDownloadsDocument(path string) (bool, error) {
+	return regexp.MatchString(`(.*ximera-downloads/.*)|(.*beamer.*\.pdf)`, path)
 }
 
 /* HashObject reads file with name filename and returns a git hash */
@@ -197,7 +215,7 @@ func LatexDependencies(filename string) ([]string, error) {
 	//
 	// Permit space between an input command and the filename in
 	// braces
-	includers, _ := regexp.Compile("\\\\(input|activity|include|includeonly)\\s*{([^}]+)}")
+	includers, _ := regexp.Compile("\\\\(input|activity|include|includeonly|activitychapter|activitysection|practicesection)\\s*{([^}]+)}")
 
 	matches := includers.FindAllStringSubmatch(code, -1)
 
@@ -344,6 +362,35 @@ func FilesInRepository(directory string, condition func(string) (bool, error)) (
 	return files, nil
 }
 
+func FilesInFolder(directory string, condition func(string) (bool, error)) ([]string, error) {
+	var files []string
+
+	var visit = func(path string, f os.FileInfo, err error) error {
+		if f.IsDir() {
+			return nil
+		}
+		passed, err := condition(path)
+		// Ignore errors from the condition test
+		if err != nil {
+			return nil
+		}
+
+		if passed {
+			files = append(files, path)
+		}
+		
+		return nil
+	}
+
+	log.Debug("Recursively listing all files in " + directory)
+	err := filepath.Walk(directory, visit)
+	if err != nil {
+		return []string{}, err
+	}
+
+	return files, nil
+}
+
 func IsTexUpToDate(inputFilename string, outputFilename string) (bool, error) {
 	f, err := os.Open(outputFilename)
 	defer f.Close()
@@ -435,10 +482,16 @@ func TexFilesInRepository(directory string) ([]string, error) {
 	return FilesInRepository(directory, IsTexDocument)
 }
 
+func XimeraDownloadFilesInRepository(directory string) ([]string, error) {
+	return FilesInFolder(directory, IsXimeraDownloadsDocument)
+}
+
 /* NeedingCompilation examines all the files in the given directory
 /* (and its subdirectories) and returns the list of files
-/* that require compilation */
-func NeedingCompilation(directory string) ([]string, map[string][]string, error) {
+/* that require compilation 
+/* extension can be html or pdf */
+
+func NeedingCompilation(directory string, extension string) ([]string, map[string][]string, error) {
 	var results []string
 	graph := topsort.NewGraph()
 	dependencyGraph := make(map[string][]string)
@@ -455,7 +508,7 @@ func NeedingCompilation(directory string) ([]string, map[string][]string, error)
 	for _, filename := range filenames {
 		graph.AddNode(filename)
 
-		outputFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".html"
+		outputFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + extension
 		good, err := IsUpToDate(filename, outputFilename)
 		if err == nil {
 			dirty[filename] = !good

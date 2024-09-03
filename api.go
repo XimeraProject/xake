@@ -43,7 +43,8 @@ func endpoint(path string) string {
 
 func requestToken(keyId string) (string, error) {
 	log.Debug("Using keyid " + keyId)
-	url := endpoint("/gpg/token/" + keyId)
+	url := endpoint("gpg/token/" + keyId)
+	log.Debug("Sending to " + url)
 	response, err := http.Get(url)
 	if err != nil {
 		return "", err
@@ -62,7 +63,8 @@ func requestToken(keyId string) (string, error) {
 
 	challenge, err := Decrypt(response.Body)
 	if err != nil {
-		return "", errors.New("Could not decrypt the challenge at " + url)
+		return "", err
+		return "", errors.New("Could not decrypt the challenge at " + url) 
 	}
 
 	return challenge, nil
@@ -70,7 +72,7 @@ func requestToken(keyId string) (string, error) {
 
 func RequestLtiSecret(keyId string, ltiKey string) (string, error) {
 	log.Debug("Using GPG key with fingerprint " + keyId)
-	url := endpoint("/gpg/secret/" + ltiKey + "/" + keyId)
+	url := endpoint("gpg/secret/" + ltiKey + "/" + keyId)
 	response, err := http.Get(url)
 	if err != nil {
 		return "", err

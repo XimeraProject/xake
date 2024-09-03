@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
+	"regexp"
 )
 
 var extensions = []string{
@@ -25,7 +27,9 @@ var extensions = []string{
 	"lg",
 	"tmp",
 	"xref",
-	"log",
+	"mw",
+	"ids",
+//	"log",
 	"auxlock",
 	"dvi",
 	"pdf",
@@ -40,11 +44,46 @@ func clean(filename string) {
 	}
 }
 
+func texHtml(filename string) ([]byte, error) {
+	cmdName := "xmlatex"
+	baseFileName := filepath.Base(filename)
+	// tikzexport := "\"\\PassOptionsToClass{tikzexport}{ximera}\\PassOptionsToClass{xake}{ximera}\\PassOptionsToClass{xake}{xourse}\\nonstopmode\\input{" + baseFileName + "}\""
+	// cmdArgs := []string{"-file-line-error", "-shell-escape", tikzexport}
+	cmdArgs := []string{"texHtml", baseFileName}
+
+	log.Debug("Starting now xmlatex " + strings.Join(cmdArgs," "))
+	cmd := exec.Command(cmdName, cmdArgs...)
+	cmd.Dir = filepath.Dir(filename)
+
+	cmdOut, err := cmd.Output()
+
+	return cmdOut, err
+}
+
+// OBSOLETE: not used anymore
 func pdflatex(filename string) ([]byte, error) {
 	cmdName := "pdflatex"
-	tikzexport := "\"\\PassOptionsToClass{tikzexport}{ximera}\\PassOptionsToClass{xake}{ximera}\\PassOptionsToClass{xake}{xourse}\\nonstopmode\\input{" + filepath.Base(filename) + "}\""
+	baseFileName := filepath.Base(filename)
+	tikzexport := "\"\\PassOptionsToClass{tikzexport}{ximera}\\PassOptionsToClass{xake}{ximera}\\PassOptionsToClass{xake}{xourse}\\nonstopmode\\input{" + baseFileName + "}\""
 	cmdArgs := []string{"-file-line-error", "-shell-escape", tikzexport}
 
+	log.Debug("Starting now pdflatex " + strings.Join(cmdArgs," "))
+	cmd := exec.Command(cmdName, cmdArgs...)
+	cmd.Dir = filepath.Dir(filename)
+
+	cmdOut, err := cmd.Output()
+
+	return cmdOut, err
+}
+
+func simplePdflatex(filename string, suffix string, extraInput string) ([]byte, error) {
+	cmdName := "pdflatex"
+	baseFileName := filepath.Base(filename)
+	pdfFileName := strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + suffix
+	inputString := "\"" + extraInput + "\\nonstopmode\\input{" + baseFileName + "}\""
+	cmdArgs := []string{"-file-line-error", "-shell-escape", "-jobname=" + pdfFileName, inputString}
+
+	log.Debug("Starting now pdflatex " + strings.Join(cmdArgs," "))
 	cmd := exec.Command(cmdName, cmdArgs...)
 	cmd.Dir = filepath.Dir(filename)
 
@@ -57,6 +96,7 @@ func htlatex(filename string) ([]byte, error) {
 	cmdName := "htlatex"
 	cmdArgs := []string{filepath.Base(filename), "ximera,charset=utf-8,-css", " -cunihtf -utf8", "", "--interaction=nonstopmode -shell-escape -file-line-error"}
 
+	log.Debug("Starting now htlatex " + strings.Join(cmdArgs," "))
 	cmd := exec.Command(cmdName, cmdArgs...)
 	cmd.Dir = filepath.Dir(filename)
 
@@ -68,6 +108,8 @@ func htlatex(filename string) ([]byte, error) {
 func sage(filename string) ([]byte, error) {
 	cmdName := "sage"
 	cmdArgs := []string{filepath.Base(filename)}
+
+	log.Debug("Starting now sage " + strings.Join(cmdArgs," "))
 	cmd := exec.Command(cmdName, cmdArgs...)
 	cmd.Dir = filepath.Dir(filename)
 
@@ -197,6 +239,35 @@ func transformHtml(directory string, filename string) error {
 		}
 	})
 
+	log.Debug("Add right class and labels to references")
+	doc.Find("a").Each(func(i int, s *goquery.Selection) {
+		aText, _ := s.Html()
+		r := regexp.MustCompile(`.*<!--tex4ht:ref: (.*) -->`)
+		matches := r.FindStringSubmatch(aText)
+		if len(matches) > 0 {
+			s.SetAttr("href", "#" + matches[1])
+			s.SetAttr("class", "reference")
+		}
+	})
+
+	log.Debug("Improve captionof result")
+	doc.Find("div.image-environment").Each(func(i int, s *goquery.Selection) {
+		next := s.Next()
+		if next.Is("br") {
+			next = next.Next()
+		}
+		next2 := next.Next()		
+		if next.Is("div.caption") && next2.Is("a.ximera-label") {
+			s.AppendSelection(next)
+			s.AppendSelection(next2)
+		}
+	})	
+
+	log.Debug("Change figure to image-environment")
+	doc.Find("div.figure").Each(func(i int, s *goquery.Selection) {
+		s.SetAttr("class", "image-environment")
+	})	
+
 	log.Debug("Remove empty paragraphs of the form <p></p>")
 	doc.Find("p:empty").Each(func(i int, s *goquery.Selection) {
 		s.Remove()
@@ -234,6 +305,11 @@ func transformHtml(directory string, filename string) error {
 		}
 	})
 
+	log.Debug("Append compilation-date")
+	doc.Find("body").Each(func(_ int, s *goquery.Selection) {
+		s.AppendHtml("<span ximera-compilation-date style=\"float:right\"><small>"+ time.Now().Format("2006-01-02 15:04:05") + "</small></span>")
+	})
+
 	if xourseFile {
 		transformXourse(directory, filename, doc)
 	}
@@ -256,44 +332,79 @@ func transformHtml(directory string, filename string) error {
 	return nil
 }
 
+func testMathJax(directory string, filename string) ([]byte, error) {
+	htmlFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".html"
+	cmd := exec.Command("node", "/root/htmlMathJaxTest/script.js", filepath.Base(htmlFilename))
+	cmd.Dir = filepath.Dir(htmlFilename)
+
+	cmdOut, err := cmd.CombinedOutput()
+
+	return cmdOut, err
+}
+
 func Compile(directory string, filename string) ([]byte, error) {
 
 	log.Debug("Cleaning files associated with " + filename)
 	clean(filename)
 
-	log.Debug("Running pdflatex for " + filename)
-	output, err := pdflatex(filename)
-	if err != nil {
-		log.Error(string(output))
-		return output, err
-	}
-
-	sagetexFilename := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".sagetex.sage"
-	if _, err := os.Stat(sagetexFilename); !os.IsNotExist(err) {
-		log.Debug("Running sage for " + filename)
-		sage(sagetexFilename)
-	}
-
-	log.Debug("Running pdflatex again for " + filename)
-	output, err = pdflatex(filename)
+	// log.Debug("Running simplePdflatex for " + filename)
+	// output, err := simplePdflatex(filename,"","")
+	log.Debug("Running texHtml for " + filename)
+	output, err := texHtml(filename)
 	if err != nil {
 		log.Error(err)
 		log.Error(string(output))
+		clean(filename)
 		return output, err
 	}
-
-	log.Debug("Running htlatex on " + filename)
-	output, err = htlatex(filename)
-	if err != nil {
-		log.Error(err)
-		log.Error(string(output))
-		return output, err
-	}
+	
+	// log.Debug("Running htlatex on " + filename)
+	// output, err = htlatex(filename)
+	// if err != nil {
+	// 	log.Error(err)
+	// 	log.Error(string(output))
+	// 	clean(filename)
+	// 	return output, err
+	// }
 
 	log.Debug("Applying HTML transformations for " + filename)
 	err = transformHtml(directory, filename)
 	if err != nil {
+		clean(filename)
 		return []byte{}, err
+	}
+
+	if !skipMathJaxCheck {
+		log.Debug("Testing mathjax for " + filename)
+		output, err = testMathJax(directory, filename)
+		if err != nil {
+			log.Error(err)
+			log.Error(string(output))
+			clean(filename)
+			return output, err
+		}
+	} else {
+		log.Debug("Skipping mathjax check for " + filename)
+	}
+
+	return []byte{}, nil
+}
+
+func CompilePdf(filename string, suffix string, extraInput string) ([]byte, error) {
+	log.Debug("Running simplePdflatex for " + filename)
+	output, err := simplePdflatex(filename, suffix, extraInput)
+	if err != nil {
+		log.Error(string(output))
+		clean(filename + suffix)
+		return output, err
+	}
+
+	log.Debug("Running simplePdflatex again for " + filename)
+	output, err = simplePdflatex(filename, suffix, extraInput)
+	if err != nil {
+		log.Error(string(output))
+		clean(filename + suffix)
+		return output, err
 	}
 
 	return []byte{}, nil

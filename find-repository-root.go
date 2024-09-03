@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"path/filepath"
 )
 
@@ -12,6 +12,7 @@ func isGitRepository(directory string) bool {
 	_, err := git.OpenRepository(directory)
 
 	if err != nil {
+		log.Error(err)
 		return false
 	}
 

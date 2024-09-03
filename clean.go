@@ -20,7 +20,7 @@ var deletableExtensions = []string{
 	".lg",
 	".tmp",
 	".xref",
-	".log",
+//	".log",
 	".auxlock",
 	".dvi",
 	".pdf",
