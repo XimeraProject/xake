@@ -33,8 +33,8 @@ func main() {
 	app := cli.NewApp()
 
 	app.Name = "xake"
-	app.Usage = "a build tool (make) for Ximera (as adapted at KU Leuven)"
-	app.Version = "2.1.1"
+	app.Usage = "a build tool for Ximera (ie ximera-make)"
+	app.Version = "2.1.2"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"
@@ -142,6 +142,10 @@ COPYRIGHT:
 		cli.BoolFlag{
 			Name:  "skip-mathjax, s",
 			Usage: "Skip the mathjax check after compiling",
+		},
+		cli.BoolFlag{
+			Name:  "mathjaxtest, m",
+			Usage: "Perform a mathjax check after compiling",
 		},
 	}
 
@@ -397,11 +401,12 @@ COPYRIGHT:
 			log.Level = logrus.DebugLevel
 		}
 
-		if c.Bool("skip-mathjax") {
-			skipMathJaxCheck = true
-		} else {
+		skipMathJaxCheck = true
+
+		if c.Bool("mathjaxtest") {
 			skipMathJaxCheck = false
 		}
+
 
 		workers = c.Int("jobs")
 		if workers == 0 {
