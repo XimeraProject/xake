@@ -34,7 +34,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool for Ximera (ie ximera-make)"
-	app.Version = "2.1.2"
+	app.Version = "2.1.3"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"
@@ -273,6 +273,8 @@ COPYRIGHT:
 				err := DisplayErrorsAboutUncommittedTexFiles(repository)
 				if err != nil {
 					log.Error(err)
+					log.Error("Exiting... (Use 'Frost' to *force* frosting)")
+					os.Exit(1)
 				} else {
 					err = Frost(app.Version)
 					if err != nil {
@@ -282,7 +284,25 @@ COPYRIGHT:
 				return err
 			},
 		},
-
+		{
+			Name:    "Frost",
+			Aliases: []string{"Ice"},
+			Usage:   "add a publication, even with uncommitted changes",
+			Action: func(c *cli.Context) error {
+				// BADBAD: should verify that we've committed the compiled source files
+				// BADBAD: and/or that we'v compiled the committed sources !!!
+				err := DisplayErrorsAboutUncommittedTexFiles(repository)
+				if err != nil {
+					log.Warn(err)
+					log.Debug("Continuing anyway, at your own risk.")
+				}
+				err = Frost(app.Version)
+				if err != nil {
+						log.Error(err)
+				}
+				return err
+			},
+		},
 		{
 			Name:    "serve",
 			Aliases: []string{"s"},
