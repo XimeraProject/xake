@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/briandowns/spinner"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"net/url"
 	"time"
 )

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	"github.com/stevenle/topsort"
 	"io"
 	"io/ioutil"

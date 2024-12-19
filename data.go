@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/libgit2/git2go"
+	"github.com/libgit2/git2go/v34"
 	//	"io/ioutil"
-	"github.com/cavaliercoder/grab"
+	"github.com/cavaliergopher/grab/v3"
 	"gopkg.in/cheggaaa/pb.v1"
 	"net/url"
 	//	"path/filepath"
@@ -73,7 +73,7 @@ func DownloadData() error {
 	defer t.Stop()
 
 	var bar *pb.ProgressBar
-	bar = pb.StartNew(int(resp.Size))
+  bar = pb.StartNew(int(resp.Size()))
 	bar.ShowTimeLeft = true
 	bar.SetUnits(pb.U_BYTES)
 	bar.Start()

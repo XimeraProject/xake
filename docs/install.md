@@ -33,9 +33,9 @@ export GOPATH=$HOME/go
 cd ~/go/src/github.com/ximeraproject
 git clone https://github.com/XimeraProject/xake.git
 cd xake
-go get .
-go build .
-
+go mod init
+go mod tidy
+go install .
 ```
 
 That may not work, though, depending on your version of libgit2.  To build libgit2 statically, you could instead follow the following recipe:

@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/fatih/color"
-	prefixed "github.com/kisonecat/logrus-prefixed-formatter"
-	"github.com/sirupsen/logrus"
+	// prefixed "github.com/kisonecat/logrus-prefixed-formatter"
+	prefixed "github.com/AVENTER-UG/go-logrus-formatter"
+	logrus "github.com/sirupsen/logrus"
 	//"github.com/tcnksm/go-latest"
 	"github.com/urfave/cli"
 	"net/url"
@@ -33,7 +34,7 @@ func main() {
 
 	app.Name = "xake"
 	app.Usage = "a build tool (make) for Ximera"
-	app.Version = "0.9.4"
+	app.Version = "0.9.5"
 
 	// Check to see if this is the newest version Humorously,
 	// go-latest depends on go>=1.7 because that was when "context"
