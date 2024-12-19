@@ -9,6 +9,11 @@ conversion of TeX files into .html files, and the publication of the
 resulting .html files.  You may be interested in some of the
 underlying [design principles](./docs/theory.md).
 
+Xake is currently being refactored into LuaTeX. The instructions below are depreciated, and are not supported.
+
+----
+
+
 The easiest way to [install xake](./docs/install.md) is with a package manager.
 
 The basic workflow is as follows.
